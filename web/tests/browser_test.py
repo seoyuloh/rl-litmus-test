@@ -173,7 +173,6 @@ def main():
             assert page.locator("#reward-formula").is_visible()
             assert "bitrate / 4.3" in page.locator("#reward-formula").inner_text()
             assert "stall seconds / 4" in page.locator("#reward-formula").inner_text()
-            assert "1.075" in page.locator("#reward-example").inner_text()
             step_is(0)
             initial = current_return()
             assert abs(initial - worker_value("record.history[0].return")) < 0.0051
@@ -306,7 +305,6 @@ def main():
             state("Ready to train")
             assert worker_value("record.config.lambda") == 0
             assert float(page.locator("#penalty-value").inner_text()) == 0
-            assert "stalls subtract no reward" in page.locator("#reward-example").inner_text()
             assert current_return() > initial
             assert abs(current_return() - worker_value("record.history[0].return")) < 0.0051
             page.wait_for_function(

@@ -196,10 +196,6 @@ function updateSettings() {
   const rate = Number($('learning-rate').value);
   $('penalty-value').value = penalty.toFixed(1);
   $('learning-rate-value').value = String(rate);
-  const costPerSecond = Number((penalty / 4).toFixed(3));
-  $('reward-example').textContent = penalty === 0
-    ? 'At penalty 0, stalls subtract no reward.'
-    : `At penalty ${penalty}, each second of stalling subtracts ${costPerSecond} reward.`;
 }
 
 $('train-button').addEventListener('click', () => {

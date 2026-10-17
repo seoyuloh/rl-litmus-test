@@ -7,8 +7,8 @@
   <meta name="description" content="Train an ABR policy in your browser and watch its path across the return landscape and its bitrate choices change together.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js"></script>
+  <link rel="stylesheet" href="./style.css?v=20261016-legend">
+  <script type="module" src="./app.js?v=20261016-legend"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
@@ -24,7 +24,7 @@
       <p class="error" id="error-message" role="alert" hidden></p>
       <div class="plots">
         <section class="plot-panel" aria-labelledby="landscape-title"><div class="plot-heading"><h2 id="landscape-title"><span>(a)</span> Return landscape</h2><p>Brighter means a higher return. The orange line is the training path.</p></div><div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point." title="Click to choose a starting point. Arrow keys move it when the map has keyboard focus."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div><div class="plot-footer"><span class="map-hint">Click to choose a starting point</span><span>Return <strong id="current-return">—</strong></span></div></section>
-        <section class="plot-panel" aria-labelledby="policy-title"><div class="plot-heading"><h2 id="policy-title"><span>(b)</span> Bitrate policy</h2><p>With more video buffered, does it choose a higher bitrate?</p></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas><div class="plot-footer legend"><span><i class="high-line"></i>4.3 Mbps · higher quality</span><span><i class="low-line"></i>2.85 Mbps · lower quality</span></div></section>
+        <section class="plot-panel" aria-labelledby="policy-title"><div class="plot-heading"><h2 id="policy-title"><span>(b)</span> Bitrate policy</h2><p>With more video buffered, does it choose a higher bitrate?</p></div><div class="policy-visual"><div class="legend" aria-label="Bitrate legend"><span><i class="high-line" aria-hidden="true"></i>4.3 Mbps · high bitrate</span><span><i class="low-line" aria-hidden="true"></i>2.85 Mbps · low bitrate</span></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas></div></section>
       </div>
       <div class="playback"><div class="playback-labels"><label for="timeline">Explore the training path</label><output id="step-label" for="timeline">Step 0 / 10,000</output></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="timeline-hint"><div class="playback-notes"><span id="timeline-hint">Drag to revisit an earlier policy.</span><span id="parameters">w = 0.10 · b = −0.10</span></div></div>
       <div class="policy-note"><span aria-hidden="true">↳</span><p id="policy-summary">Choose a start, then train the policy.</p></div>
@@ -33,10 +33,9 @@
       <h2 id="reward-title">How reward works</h2>
       <p class="reward-formula" id="reward-formula"><span>Reward per chunk =</span> <span>bitrate / 4.3</span> <span>− stall penalty × stall seconds / 4</span></p>
       <p>Higher bitrate earns more reward; waiting for video subtracts reward. Bitrate is in Mbps, and each chunk is 4 seconds.</p>
-      <p id="reward-example">At penalty 4.3, each second of stalling subtracts 1.075 reward.</p>
       <p><strong>Return on the heatmap</strong> is the expected sum of rewards over 8 chunks, averaged across 7 constant-bandwidth network traces: 3, 3.5, 4, 4.5, 5, 5.5, and 6 Mbps.</p>
     </section>
-    <details class="about" id="method-details"><summary>How to read this figure</summary><div><p><strong>Left:</strong> each point is a policy with weight <em>w</em> and bias <em>b</em>. Its color shows the expected return in the controlled ABR simulation. Training moves the policy across this map, which expands automatically when needed. Clicking it starts a new experiment at that point.</p><p><strong>Right:</strong> the two curves show that policy’s probability of choosing each bitrate. Buffer occupancy is how full the video buffer is; 100% means 60 seconds ready to play. The summary describes the preferred choice, breaking ties toward the lower bitrate.</p><p>Training uses eight video chunks and seven constant-bandwidth network traces. A run now lasts 10,000 updates. Continue adds another 10,000 without resetting the policy; Reset or a setting change starts a fresh run. The freezing penalty changes the scoring rule, so compare returns within one run. A rising return alone does not establish correct behavior or reliability.</p></div></details>
+    <details class="about" id="method-details"><summary>Plot guide</summary><div><p><strong>Heatmap:</strong> the axes are policy weight <em>w</em> and bias <em>b</em>. Color shows expected return; the orange line traces the training updates.</p><p><strong>Policy:</strong> the curves show each bitrate’s selection probability at the chosen step. Buffer occupancy of 100% means 60 seconds of video ready to play.</p><p><strong>Controls:</strong> drag the timeline to inspect earlier steps. Continue adds 10,000 steps. Reset, a setting change, or a heatmap click starts a new run.</p></div></details>
   </main>
   <footer><span>Controlled ABR · Real training, entirely in JavaScript</span><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research & code ↗</a></footer>
   <noscript><p class="error">Please enable JavaScript to explore the figure.</p></noscript>

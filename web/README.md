@@ -32,7 +32,7 @@ The high-bitrate probability is `sigmoid(w × buffer_seconds / 60 + b)`, clipped
 
 Per-chunk reward is `bitrate / 4.3 - stall_penalty × stall_seconds / 4`. The initial download counts as stall. Heatmap values are exact expected total episode returns, averaging all action sequences over the seven traces. The path records actual training updates; grid colors approximate the landscape between sampled parameter points.
 
-Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 10,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the visible reward definition includes a stall-cost example that updates with the slider.
+Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 10,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the reward formula is shown below the plots.
 
 The demo trains and evaluates on the same traces. It illustrates this controlled experiment; it does not establish performance on unseen bandwidths or production video streams.
 
