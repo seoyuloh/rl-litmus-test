@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9fb">
+  <meta name="description" content="Train an ABR policy in your browser and watch its path across the return landscape and its bitrate choices change together.">
+  <title>RL Litmus Test</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#experiment">Skip to the experiment</a>
+  <header><a class="brand" href="./"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a><span class="local-note"><i aria-hidden="true"></i>Live in your browser</span></header>
+  <main>
+    <section class="intro"><h1>Watch a policy learn.</h1><p>Pick a starting point on the heatmap. Press Train. Watch the path and the policy change together.</p></section>
+    <section class="experiment" id="experiment" aria-label="Interactive ABR experiment">
+      <div class="toolbar">
+        <div class="setting-control"><label for="penalty">Stall penalty <output id="penalty-value" for="penalty">4.3</output></label><input id="penalty" type="range" min="0" max="10" step="0.1" value="4.3" aria-describedby="penalty-hint"><div class="range-limits" aria-hidden="true"><span>0</span><span>10</span></div><p id="penalty-hint">How much reward is lost when video pauses to buffer. Higher values put more weight on avoiding stalls.</p></div>
+        <div class="setting-control"><label for="learning-rate">Learning rate <output id="learning-rate-value" for="learning-rate">0.05</output></label><input id="learning-rate" type="range" min="0.001" max="0.2" step="0.001" value="0.05" aria-describedby="learning-rate-hint"><div class="range-limits" aria-hidden="true"><span>0.001</span><span>0.2</span></div><p id="learning-rate-hint">How much the policy changes each update. Larger values take bigger steps and can overshoot.</p></div>
+        <div class="actions"><span class="run-status" id="run-status" role="status">Preparing…</span><button id="reset-button" class="reset-button" disabled>Reset</button><button id="train-button" class="train-button" disabled>Getting ready…</button></div>
+      </div>
+      <p class="error" id="error-message" role="alert" hidden></p>
+      <div class="plots">
+        <section class="plot-panel" aria-labelledby="landscape-title"><div class="plot-heading"><h2 id="landscape-title"><span>(a)</span> Return landscape</h2><p>Brighter means a higher return. The orange line is the training path.</p></div><div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point." title="Click to choose a starting point. Arrow keys move it when the map has keyboard focus."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div><div class="plot-footer"><span class="map-hint">Click to choose a starting point</span><span>Return <strong id="current-return">—</strong></span></div></section>
+        <section class="plot-panel" aria-labelledby="policy-title"><div class="plot-heading"><h2 id="policy-title"><span>(b)</span> Bitrate policy</h2><p>With more video buffered, does it choose a higher bitrate?</p></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas><div class="plot-footer legend"><span><i class="high-line"></i>4.3 Mbps · higher quality</span><span><i class="low-line"></i>2.85 Mbps · lower quality</span></div></section>
+      </div>
+      <div class="playback"><div class="playback-labels"><label for="timeline">Explore the training path</label><output id="step-label" for="timeline">Step 0 / 20,000</output></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="timeline-hint"><div class="playback-notes"><span id="timeline-hint">Drag to revisit an earlier policy.</span><span id="parameters">w = 0.10 · b = −0.10</span></div></div>
+      <div class="policy-note"><span aria-hidden="true">↳</span><p id="policy-summary">Choose a start, then train the policy.</p></div>
+    </section>
+    <section class="reward-guide" aria-labelledby="reward-title">
+      <h2 id="reward-title">How reward works</h2>
+      <p class="reward-formula" id="reward-formula"><span>Reward per chunk =</span> <span>bitrate / 4.3</span> <span>− stall penalty × stall seconds / 4</span></p>
+      <p>Higher bitrate earns more reward; waiting for video subtracts reward. Bitrate is in Mbps, and each chunk is 4 seconds. Startup waiting also counts as stall time.</p>
+      <p id="reward-example">At penalty 4.3, each second of stalling subtracts 1.075 reward.</p>
+      <p><strong>Return on the heatmap</strong> is the expected sum of rewards over 8 chunks, averaged across 7 network speeds.</p>
+    </section>
+    <details class="about" id="method-details"><summary>How to read this figure</summary><div><p><strong>Left:</strong> each point is a policy with weight <em>w</em> and bias <em>b</em>. Its color shows the expected return in the controlled ABR simulation. Training moves the policy across this map, which expands automatically when needed. Clicking it starts a new experiment at that point.</p><p><strong>Right:</strong> the two curves show that policy’s probability of choosing each bitrate. Buffer occupancy is how full the video buffer is; 100% means 60 seconds ready to play. The summary describes the preferred choice, breaking ties toward the lower bitrate.</p><p>Training uses eight video chunks and seven constant network speeds. A run now lasts 20,000 updates. Continue adds another 20,000 without resetting the policy; Reset or a setting change starts a fresh run. The freezing penalty changes the scoring rule, so compare returns within one run. A rising return alone does not establish correct behavior or reliability.</p></div></details>
+  </main>
+  <footer><span>Controlled ABR · Real training, entirely in JavaScript</span><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research & code ↗</a></footer>
+  <noscript><p class="error">Please enable JavaScript to explore the figure.</p></noscript>
+</body>
+</html>

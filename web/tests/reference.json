@@ -1,0 +1,427 @@
+{
+  "provenance": {
+    "generator": "web/tests/reference.py; Python standard library only",
+    "sources": [
+      "processing/abr_env.py",
+      "processing/policy.py",
+      "workspace manuscript: sections/4_success.tex",
+      "processing/oracle_multitrace.py"
+    ],
+    "precision": "float64 literal model; upstream observations and policy arithmetic use float32",
+    "probabilityClamp": [
+      1e-06,
+      0.999999
+    ],
+    "gradient": "d(total expected episode reward)/d(w,b), without horizon scaling or entropy regularization",
+    "baseline": "Best deterministic single buffer threshold over all reachable-state intervals; threshold in seconds. Source integer-percent grid is also recorded."
+  },
+  "transitions": [
+    {
+      "name": "startup_low",
+      "input": {
+        "buffer": 0.0,
+        "action": 0,
+        "bandwidth": 4.0,
+        "config": {
+          "lambda": 4.3
+        }
+      },
+      "expected": {
+        "buffer": 4.0,
+        "reward": -2.400959302325581,
+        "stall": 2.85,
+        "bitrate": 2.85,
+        "download": 2.85
+      }
+    },
+    {
+      "name": "startup_high",
+      "input": {
+        "buffer": 0.0,
+        "action": 1,
+        "bandwidth": 6.0,
+        "config": {
+          "lambda": 4.3
+        }
+      },
+      "expected": {
+        "buffer": 4.0,
+        "reward": -2.0816666666666666,
+        "stall": 2.8666666666666667,
+        "bitrate": 4.3,
+        "download": 2.8666666666666667
+      }
+    },
+    {
+      "name": "partial_rebuffer",
+      "input": {
+        "buffer": 5.0,
+        "action": 1,
+        "bandwidth": 3.0,
+        "config": {
+          "lambda": 4.3
+        }
+      },
+      "expected": {
+        "buffer": 4.0,
+        "reward": 0.21166666666666667,
+        "stall": 0.7333333333333334,
+        "bitrate": 4.3,
+        "download": 5.733333333333333
+      }
+    },
+    {
+      "name": "exactly_covers_download",
+      "input": {
+        "buffer": 4.3,
+        "action": 1,
+        "bandwidth": 4.0,
+        "config": {
+          "lambda": 4.3
+        }
+      },
+      "expected": {
+        "buffer": 4.0,
+        "reward": 1.0,
+        "stall": 0.0,
+        "bitrate": 4.3,
+        "download": 4.3
+      }
+    },
+    {
+      "name": "drain_at_full_buffer",
+      "input": {
+        "buffer": 59.0,
+        "action": 0,
+        "bandwidth": 20.0,
+        "config": {
+          "lambda": 4.3
+        }
+      },
+      "expected": {
+        "buffer": 60.0,
+        "reward": 0.6627906976744187,
+        "stall": 0.0,
+        "bitrate": 2.85,
+        "download": 0.5700000000000001
+      }
+    },
+    {
+      "name": "low_stall_penalty",
+      "input": {
+        "buffer": 0.0,
+        "action": 1,
+        "bandwidth": 3.0,
+        "config": {
+          "lambda": 1.3
+        }
+      },
+      "expected": {
+        "buffer": 4.0,
+        "reward": -0.8633333333333335,
+        "stall": 5.733333333333333,
+        "bitrate": 4.3,
+        "download": 5.733333333333333
+      }
+    }
+  ],
+  "policies": [
+    {
+      "name": "manuscript_uniform",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": 0.0,
+        "b": 0.0
+      },
+      "expected": {
+        "return": 1.87931933743095,
+        "gradW": 0.008127466418244588,
+        "gradB": -0.4877813366061085,
+        "bitrate": 3.575000000000003,
+        "stall": 4.4389241425736525,
+        "probabilityMass": 1.0,
+        "variance": 9.381424429370611
+      }
+    },
+    {
+      "name": "manuscript_threshold_shape",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": 20.0,
+        "b": -2.0
+      },
+      "expected": {
+        "return": 2.8033985393008622,
+        "gradW": 0.0010851191038935986,
+        "gradB": -0.3064602547756024,
+        "bitrate": 3.543993054551101,
+        "stall": 3.525652940490001,
+        "probabilityMass": 0.9999999999999989,
+        "variance": 5.956034546530277
+      }
+    },
+    {
+      "name": "manuscript_inverted_initialization",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": -40.0,
+        "b": 8.0
+      },
+      "expected": {
+        "return": 0.45692081542186863,
+        "gradW": 0.006818662707037808,
+        "gradB": 0.03761869212628837,
+        "bitrate": 4.264070746141564,
+        "stall": 6.954636335926106,
+        "probabilityMass": 0.9999999999999998,
+        "variance": 30.96856068944259
+      }
+    },
+    {
+      "name": "manuscript_fully_clipped_high",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": 3.0,
+        "b": 20.0
+      },
+      "expected": {
+        "return": 0.5000182427500797,
+        "gradW": 0.0,
+        "gradB": 0.0,
+        "bitrate": 4.299998549999989,
+        "stall": 6.9767247065818605,
+        "probabilityMass": 1.000000000000003,
+        "variance": 31.681904226857842
+      }
+    },
+    {
+      "name": "low_stall_penalty",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 1.3
+      },
+      "params": {
+        "w": 25.0,
+        "b": -1.0
+      },
+      "expected": {
+        "return": 5.694498485520915,
+        "gradW": 0.011430592656769123,
+        "gradB": 0.07405071707655528,
+        "bitrate": 3.8774900748989936,
+        "stall": 4.6751893462983904,
+        "probabilityMass": 0.9999999999999984,
+        "variance": 1.621458454819603
+      }
+    },
+    {
+      "name": "narrow_training_traces",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": 10.0,
+        "b": -1.0
+      },
+      "expected": {
+        "return": 0.2276443357334841,
+        "gradW": -0.07299026548378791,
+        "gradB": -1.415078041517332,
+        "bitrate": 3.472880584397643,
+        "stall": 5.798631483294141,
+        "probabilityMass": 0.9999999999999997,
+        "variance": 8.60541601525296
+      }
+    },
+    {
+      "name": "committed_yaml_uniform",
+      "config": {
+        "horizon": 4,
+        "bandwidths": [
+          4.0
+        ],
+        "lambda": 4.3
+      },
+      "params": {
+        "w": 0.0,
+        "b": 0.0
+      },
+      "expected": {
+        "return": -0.7997311046511619,
+        "gradW": 0.004397529069767446,
+        "gradB": -0.27419694767441855,
+        "bitrate": 3.575,
+        "stall": 3.8374999999999995,
+        "probabilityMass": 1.0,
+        "variance": 0.4241736877936553
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "name": "manuscript",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 4.3
+      },
+      "expected": {
+        "return": 3.9393798557477955,
+        "threshold": 5.033333333333332,
+        "bitrate": 3.7044642857142875,
+        "stall": 2.7466481137909717
+      },
+      "sourceIntegerPercentGrid": {
+        "return": 3.90866557003351,
+        "threshold": 4.8,
+        "bitrate": 3.7044642857142875,
+        "stall": 2.7752195423624
+      }
+    },
+    {
+      "name": "low_penalty",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0
+        ],
+        "lambda": 1.3
+      },
+      "expected": {
+        "return": 5.999365941091023,
+        "threshold": 5.033333333333332,
+        "bitrate": 3.7044642857142875,
+        "stall": 2.7466481137909717
+      },
+      "sourceIntegerPercentGrid": {
+        "return": 5.9900802268053095,
+        "threshold": 4.8,
+        "bitrate": 3.7044642857142875,
+        "stall": 2.7752195423624
+      }
+    },
+    {
+      "name": "narrow_traces",
+      "config": {
+        "horizon": 8,
+        "bandwidths": [
+          3.0,
+          3.5,
+          4.0
+        ],
+        "lambda": 4.3
+      },
+      "expected": {
+        "return": 2.5727828534514576,
+        "threshold": 5.049999999999999,
+        "bitrate": 3.3937499999999994,
+        "stall": 3.4801587301587316
+      },
+      "sourceIntegerPercentGrid": {
+        "return": 2.501116186784791,
+        "threshold": 4.8,
+        "bitrate": 3.3937499999999994,
+        "stall": 3.546825396825398
+      }
+    },
+    {
+      "name": "committed_yaml",
+      "config": {
+        "horizon": 4,
+        "bandwidths": [
+          4.0
+        ],
+        "lambda": 4.3
+      },
+      "expected": {
+        "return": 0.2618313953488378,
+        "threshold": 4.425000000000001,
+        "bitrate": 3.575,
+        "stall": 2.85
+      },
+      "sourceIntegerPercentGrid": {
+        "return": 0.2618313953488378,
+        "threshold": 4.2,
+        "bitrate": 3.575,
+        "stall": 2.85
+      }
+    }
+  ]
+}
