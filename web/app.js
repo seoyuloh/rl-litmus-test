@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261016-fixed10k';
-import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261016-fixed10k';
+import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261016-origin0';
+import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261016-origin0';
 
 const $ = (id) => document.getElementById(id);
 const BOUNDS = { wMin: -60, wMax: 80, bMin: -12, bMax: 12, width: 85, height: 65 };
@@ -60,7 +60,10 @@ function updateView() {
   $('parameters').textContent = `w = ${snapshot.w.toFixed(2)} · b = ${snapshot.b.toFixed(2)}`;
   let summary;
   let kind;
-  if (!snapshot.greedyMonotonic) {
+  if (snapshot.w === 0 && snapshot.b === 0) {
+    summary = 'Both bitrates are equally likely at every buffer level.';
+    kind = 'constant';
+  } else if (!snapshot.greedyMonotonic) {
     summary = 'Reversed rule: more buffer can make this policy prefer a lower bitrate.';
     kind = 'reversed';
   } else if (probability(snapshot, 0) <= 0.5 && probability(snapshot, 1) <= 0.5) {
@@ -129,7 +132,7 @@ function prepare(autoStart = false) {
   $('timeline').value = 0;
   $('step-label').value = `Step 0 / ${config.iterations.toLocaleString()}`;
   setState('preparing');
-  const activeWorker = new Worker(new URL('./worker.js?v=20261016-fixed10k', import.meta.url), { type: 'module' });
+  const activeWorker = new Worker(new URL('./worker.js?v=20261016-origin0', import.meta.url), { type: 'module' });
   worker = activeWorker;
   activeWorker.onerror = (error) => {
     if (worker === activeWorker) fail(error.message || 'The training worker could not start. Please reload the page.');

@@ -7,14 +7,14 @@
   <meta name="description" content="Train an ABR policy in your browser and watch its path across the return landscape and its bitrate choices change together.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261016-fixed10k">
-  <script type="module" src="./app.js?v=20261016-fixed10k"></script>
+  <link rel="stylesheet" href="./style.css?v=20261016-origin0">
+  <script type="module" src="./app.js?v=20261016-origin0"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
   <header><a class="brand" href="./"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a><span class="local-note"><i aria-hidden="true"></i>Live in your browser</span></header>
   <main>
-    <section class="intro"><h1>Watch a policy learn.</h1><p>Pick a starting point on the heatmap. Press Train. Watch the path and the policy change together.</p></section>
+    <section class="intro"><h1>Watch a policy learn.</h1><p>Press Train to start at (0, 0), or click the heatmap to choose another starting point.</p></section>
     <section class="experiment" id="experiment" aria-label="Interactive ABR experiment">
       <div class="toolbar">
         <div class="setting-control"><label for="penalty">Stall penalty <output id="penalty-value" for="penalty">4.3</output></label><input id="penalty" type="range" min="0" max="10" step="0.1" value="4.3" aria-describedby="penalty-hint"><div class="range-limits" aria-hidden="true"><span>0</span><span>10</span></div><p id="penalty-hint">How much reward is lost when video pauses to buffer. Higher values put more weight on avoiding stalls.</p></div>
@@ -26,7 +26,7 @@
         <section class="plot-panel" aria-labelledby="landscape-title"><div class="plot-heading"><h2 id="landscape-title"><span>(a)</span> Return landscape</h2><p>Brighter means a higher return. The orange line is the training path.</p></div><div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point." title="Click to choose a starting point. Arrow keys move it when the map has keyboard focus."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div><div class="plot-footer"><span class="map-hint">Click to choose a starting point</span><span>Return <strong id="current-return">—</strong></span></div></section>
         <section class="plot-panel" aria-labelledby="policy-title"><div class="plot-heading"><h2 id="policy-title"><span>(b)</span> Bitrate policy</h2><p>With more video buffered, does it choose a higher bitrate?</p></div><div class="policy-visual"><div class="legend" aria-label="Bitrate legend"><span><i class="high-line" aria-hidden="true"></i>4.3 Mbps · high bitrate</span><span><i class="low-line" aria-hidden="true"></i>2.85 Mbps · low bitrate</span></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas></div></section>
       </div>
-      <div class="playback"><div class="playback-labels"><label for="timeline">Explore the training path</label><output id="step-label" for="timeline">Step 0 / 10,000</output></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="timeline-hint"><div class="playback-notes"><span id="timeline-hint">Drag to revisit an earlier policy.</span><span id="parameters">w = 0.10 · b = −0.10</span></div></div>
+      <div class="playback"><div class="playback-labels"><label for="timeline">Explore the training path</label><output id="step-label" for="timeline">Step 0 / 10,000</output></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="timeline-hint"><div class="playback-notes"><span id="timeline-hint">Drag to revisit an earlier policy.</span><span id="parameters">w = 0.00 · b = 0.00</span></div></div>
       <div class="policy-note"><span aria-hidden="true">↳</span><p id="policy-summary">Choose a start, then train the policy.</p></div>
     </section>
     <section class="reward-guide" aria-labelledby="reward-title">

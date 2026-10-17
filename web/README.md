@@ -17,7 +17,7 @@ python3 -m http.server 4173 --directory web
 
 Open <http://localhost:4173>. Serve the files over HTTP so ES modules and the worker can load.
 
-1. Click the heatmap to choose a starting policy.
+1. Start from `w = 0, b = 0` (each bitrate has probability 50% at every buffer level), or click the heatmap to choose another starting policy.
 2. Select a stall penalty and learning rate, then start training.
 3. Watch the path and policy curves change. Pause and resume as needed.
 4. Move the training-step slider to inspect recorded policies. Every run stops at exactly 10,000 steps. **Train again** starts a fresh 10,000-step run with the selected settings and starting policy; **Reset** returns to step 0 without starting training.

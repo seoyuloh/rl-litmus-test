@@ -12,8 +12,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   lambda: 4.3,
   horizon: 8,
   bandwidths: Object.freeze([3, 3.5, 4, 4.5, 5, 5.5, 6]),
-  w: 0.1,
-  b: -0.1,
+  w: 0,
+  b: 0,
   optimizer: 'adam',
   gradient: 'sampled',
   // The original max(schedule, .01) has this floor even when YAML says 0.
