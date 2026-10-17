@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG, MAX_ITERATIONS, validateConfig, sigmoid } from './engine.js';
-import { drawLandscape, hitLandscape, drawPolicy } from './charts.js';
+import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261016-fixed10k';
+import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261016-fixed10k';
 
 const $ = (id) => document.getElementById(id);
 const BOUNDS = { wMin: -60, wMax: 80, bMin: -12, bMax: 12, width: 85, height: 65 };
@@ -25,16 +25,12 @@ function setState(next) {
     running: ['Ⅱ Pause', 'Training'],
     pausing: ['Pausing…', 'Pausing…'],
     paused: ['▶ Resume', 'Paused'],
-    completed: ['▶ Continue', 'Complete'],
+    completed: ['▶ Train again', 'Complete'],
     error: ['Unable to train', 'Error'],
   };
   $('train-button').textContent = labels[next][0];
   $('run-status').textContent = labels[next][1];
   $('train-button').disabled = ['preparing', 'pausing', 'error'].includes(next);
-  if (next === 'completed' && config.iterations >= MAX_ITERATIONS) {
-    $('train-button').textContent = 'Limit reached';
-    $('train-button').disabled = true;
-  }
   $('train-button').dataset.running = next === 'running';
   $('reset-button').disabled = next === 'preparing' || next === 'pausing';
   $('timeline').disabled = history.length < 2 || next === 'preparing' || next === 'error';
@@ -115,14 +111,14 @@ function expandMap(snapshot) {
   }
 }
 
-function prepare() {
+function prepare(autoStart = false) {
   clearTimeout(debounce);
   worker?.terminate();
   worker = undefined;
   mapPending = false;
   $('error-message').hidden = true;
   try {
-    config = validateConfig({ ...DEFAULT_CONFIG, ...initial, learningRate: Number($('learning-rate').value), lambda: Number($('penalty').value) });
+    config = validateConfig({ ...DEFAULT_CONFIG, ...initial, iterations: 10000, learningRate: Number($('learning-rate').value), lambda: Number($('penalty').value) });
   } catch (error) { fail(error.message); return; }
   const needLandscape = !landscape || landscapePenalty !== config.lambda;
   if (needLandscape) { landscape = undefined; $('map-loading').hidden = false; }
@@ -133,7 +129,7 @@ function prepare() {
   $('timeline').value = 0;
   $('step-label').value = `Step 0 / ${config.iterations.toLocaleString()}`;
   setState('preparing');
-  const activeWorker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+  const activeWorker = new Worker(new URL('./worker.js?v=20261016-fixed10k', import.meta.url), { type: 'module' });
   worker = activeWorker;
   activeWorker.onerror = (error) => {
     if (worker === activeWorker) fail(error.message || 'The training worker could not start. Please reload the page.');
@@ -148,15 +144,13 @@ function prepare() {
       setState('ready');
       updateView();
       expandMap(data.snapshot);
+      if (autoStart) start();
     } else if (data.type === 'update') {
       history.push(...data.history);
       if (following) selected = history.length - 1;
       updateView();
       expandMap(data.snapshot);
       if (data.complete) setState('completed');
-    } else if (data.type === 'extended') {
-      config.iterations = data.iterations;
-      updateView();
     } else if (data.type === 'landscape') {
       landscape = data.landscape;
       mapBounds = data.bounds;
@@ -200,13 +194,7 @@ function updateSettings() {
 
 $('train-button').addEventListener('click', () => {
   if (state === 'running') pause();
-  else if (state === 'completed') {
-    following = true;
-    selected = history.length - 1;
-    updateView();
-    setState('running');
-    worker.postMessage({ type: 'extend', iterations: Math.min(DEFAULT_CONFIG.iterations, MAX_ITERATIONS - config.iterations) });
-  }
+  else if (state === 'completed') prepare(true);
   else start();
 });
 $('reset-button').addEventListener('click', () => prepare());

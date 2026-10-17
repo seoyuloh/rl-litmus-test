@@ -20,9 +20,9 @@ Open <http://localhost:4173>. Serve the files over HTTP so ES modules and the wo
 1. Click the heatmap to choose a starting policy.
 2. Select a stall penalty and learning rate, then start training.
 3. Watch the path and policy curves change. Pause and resume as needed.
-4. Move the training-step slider to inspect recorded policies. After 10,000 steps, **Continue** adds another 10,000, preserving parameters, Adam state, random-number state, and the full history. **Reset** starts a new 10,000-step run.
+4. Move the training-step slider to inspect recorded policies. Every run stops at exactly 10,000 steps. **Train again** starts a fresh 10,000-step run with the selected settings and starting policy; **Reset** returns to step 0 without starting training.
 
-Runs can be extended to 1,000,000 total updates. Every update remains available in the timeline; long paths are subsampled only for drawing to keep the interface responsive.
+The demo does not extend completed runs. Every update remains available in the timeline; paths are subsampled only for drawing to keep the interface responsive. The worker also enforces the 10,000-step limit. Versioned module URLs keep the app, worker, and training engine on the same release.
 
 ## Experiment
 

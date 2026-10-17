@@ -7,8 +7,8 @@
   <meta name="description" content="Train an ABR policy in your browser and watch its path across the return landscape and its bitrate choices change together.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261016-legend">
-  <script type="module" src="./app.js?v=20261016-legend"></script>
+  <link rel="stylesheet" href="./style.css?v=20261016-fixed10k">
+  <script type="module" src="./app.js?v=20261016-fixed10k"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
@@ -35,7 +35,7 @@
       <p>Higher bitrate earns more reward; waiting for video subtracts reward. Bitrate is in Mbps, and each chunk is 4 seconds.</p>
       <p><strong>Return on the heatmap</strong> is the expected sum of rewards over 8 chunks, averaged across 7 constant-bandwidth network traces: 3, 3.5, 4, 4.5, 5, 5.5, and 6 Mbps.</p>
     </section>
-    <details class="about" id="method-details"><summary>Plot guide</summary><div><p><strong>Heatmap:</strong> the axes are policy weight <em>w</em> and bias <em>b</em>. Color shows expected return; the orange line traces the training updates.</p><p><strong>Policy:</strong> the curves show each bitrate’s selection probability at the chosen step. Buffer occupancy of 100% means 60 seconds of video ready to play.</p><p><strong>Controls:</strong> drag the timeline to inspect earlier steps. Continue adds 10,000 steps. Reset, a setting change, or a heatmap click starts a new run.</p></div></details>
+    <details class="about" id="method-details"><summary>Plot guide</summary><div><p><strong>Heatmap:</strong> the axes are policy weight <em>w</em> and bias <em>b</em>. Color shows expected return; the orange line traces the training updates.</p><p><strong>Policy:</strong> the curves show each bitrate’s selection probability at the chosen step. Buffer occupancy of 100% means 60 seconds of video ready to play.</p><p><strong>Controls:</strong> drag the timeline to inspect earlier steps. Each run stops at 10,000 steps. Train again starts fresh. Reset, a setting change, or a heatmap click resets training.</p></div></details>
   </main>
   <footer><span>Controlled ABR · Real training, entirely in JavaScript</span><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research & code ↗</a></footer>
   <noscript><p class="error">Please enable JavaScript to explore the figure.</p></noscript>

@@ -1,4 +1,4 @@
-import { createExperiment } from './engine.js';
+import { createExperiment } from './engine.js?v=20261016-fixed10k';
 
 let trainer;
 let experiment;
@@ -36,7 +36,8 @@ self.onmessage = ({ data }) => {
   try {
     if (data.type === 'init') {
       stop();
-      experiment = createExperiment(data.config);
+      // Each demo run ends at 10,000 updates, regardless of the requested budget.
+      experiment = createExperiment({ ...data.config, iterations: 10000 });
       trainer = experiment.createTrainer();
       iterations = experiment.config.iterations;
       const landscape = data.bounds ? experiment.landscape(data.bounds) : null;
@@ -48,11 +49,6 @@ self.onmessage = ({ data }) => {
     } else if (data.type === 'pause') {
       stop();
       postMessage({ type: 'paused' });
-    } else if (data.type === 'extend' && trainer && !running) {
-      iterations = trainer.extend(data.iterations);
-      postMessage({ type: 'extended', iterations });
-      running = true;
-      tick();
     } else if (data.type === 'landscape' && experiment) {
       postMessage({ type: 'landscape', landscape: experiment.landscape(data.bounds), bounds: data.bounds });
     }

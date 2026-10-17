@@ -55,7 +55,14 @@ def main():
                 constructor(url, options) {
                   super(url, options);
                   if (!new URL(url, location.href).pathname.endsWith('/worker.js')) return;
-                  const record = {config: null, iterations: null, history: [], messages: [], extensions: [], complete: false};
+                  const record = {
+                    config: null, iterations: null, history: [], messages: [], extensions: [], complete: false,
+                    initialView: {
+                      value: Number(document.getElementById('timeline').value),
+                      max: Number(document.getElementById('timeline').max),
+                      step: document.getElementById('step-label').textContent,
+                    },
+                  };
                   window.__trainingWorkers.push(record);
                   const nativePostMessage = this.postMessage.bind(this);
                   this.postMessage = (data, ...rest) => {
@@ -210,9 +217,13 @@ def main():
             page.locator("#train-button").click()
             state("Complete")
             step_is(10000)
-            assert page.locator("#train-button").inner_text().split() == ["▶", "Continue"]
+            assert page.locator("#train-button").inner_text().split() == ["▶", "Train", "again"]
             assert worker_value("record.complete && record.history.length === 10001")
             assert worker_value("record.history.every((point, index) => point.iteration === index)")
+            page.wait_for_timeout(240)
+            assert worker_value("record.complete && record.history.length === 10001 && record.history.at(-1).iteration === 10000")
+            assert worker_value("record.extensions") == []
+            step_is(10000)
             final_return = current_return()
             assert final_return > initial
             assert abs(final_return - worker_value("record.history.at(-1).return")) < 0.0051
@@ -251,41 +262,41 @@ def main():
             worker_count = page.evaluate("window.__trainingWorkers.length")
             page.locator("#train-button").click()
             state("Training")
-            page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration > 10100")
+            page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration > 100")
             page.locator("#train-button").click()
             state("Paused")
-            continued_iteration = worker_value("record.history.at(-1).iteration")
-            assert page.evaluate("window.__trainingWorkers.length") == worker_count, "Continue replaced the worker"
-            assert worker_value("record.extensions") == [20000]
-            assert worker_value("record.iterations") == 20000
-            assert worker_value("!record.complete && record.history.every((point, index) => point.iteration === index)")
-            assert page.evaluate("""window.__firstHistory ===
-              JSON.stringify(window.__trainingWorkers.at(-1).history.slice(0, 10001))"""), "Continue changed the existing trajectory"
-            step_is(continued_iteration, 20000)
-            continued_return = current_return()
-            continued_policy = canvas_image("#policy-chart")
+            replayed_iteration = worker_value("record.history.at(-1).iteration")
+            assert page.evaluate("window.__trainingWorkers.length") == worker_count + 1, "Train again did not create a fresh worker"
+            assert worker_value("record.config.iterations") == 10000
+            assert worker_value("record.iterations") == 10000
+            assert worker_value("record.extensions") == []
+            assert worker_value("record.initialView") == {"value": 0, "max": 0, "step": "Step 0 / 10,000"}
+            assert worker_value("!record.complete && record.history.length < 10001 && record.history.every((point, index) => point.iteration === index)")
+            assert page.evaluate("""() => {
+              const history = window.__trainingWorkers.at(-1).history;
+              return JSON.stringify(history) === JSON.stringify(JSON.parse(window.__firstHistory).slice(0, history.length));
+            }"""), "Train again did not replay the same seeded trajectory"
+            step_is(replayed_iteration)
+            replayed_return = current_return()
+            replayed_policy = canvas_image("#policy-chart")
             page.wait_for_timeout(180)
-            assert worker_value("record.history.at(-1).iteration") == continued_iteration
+            assert worker_value("record.history.at(-1).iteration") == replayed_iteration
             move_slider("#timeline", 0)
-            step_is(0, 20000)
+            step_is(0)
             assert current_return() == initial
             assert canvas_image("#policy-chart") == initial_policy
-            move_slider("#timeline", 10000)
-            step_is(10000, 20000)
-            assert current_return() == final_return
-            assert canvas_image("#policy-chart") == final_policy
-            move_slider("#timeline", continued_iteration)
-            step_is(continued_iteration, 20000)
-            assert current_return() == continued_return
-            assert canvas_image("#policy-chart") == continued_policy
-            print("PASS: Continue extends the same worker to 20,000 steps and retains the entire linked timeline", flush=True)
+            move_slider("#timeline", replayed_iteration)
+            step_is(replayed_iteration)
+            assert current_return() == replayed_return
+            assert canvas_image("#policy-chart") == replayed_policy
+            print("PASS: training stops at 10,000 and Train again starts a fresh seeded run with a reset timeline", flush=True)
 
             page.locator("#reset-button").click()
             state("Ready to train")
             step_is(0)
             assert current_return() == initial
             assert worker_value("record.history.length") == 1
-            assert page.evaluate("window.__trainingWorkers.length") == worker_count + 1
+            assert page.evaluate("window.__trainingWorkers.length") == worker_count + 2
             page.locator("#train-button").click()
             state("Training")
             page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration > 100")
