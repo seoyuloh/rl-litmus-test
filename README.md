@@ -4,7 +4,7 @@ Temporary browser demo of the controlled adaptive bitrate (ABR) experiment.
 
 **Website:** https://seoyuloh.github.io/rl-litmus-test/
 
-Choose a starting policy on the return heatmap, adjust stall penalty and learning rate, then train in your browser. The heatmap and bitrate policy update together. Each run lasts 20,000 updates; Continue adds another 20,000 without resetting training.
+Choose a starting policy on the return heatmap, adjust stall penalty and learning rate, then train in your browser. The heatmap and bitrate policy update together. Each run lasts 10,000 updates; Continue adds another 10,000 without resetting training.
 
 ## Run locally
 

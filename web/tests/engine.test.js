@@ -261,7 +261,7 @@ export async function runTests() {
     throws(() => transition(0, 2, 4));
     throws(() => createExperiment().evaluate(NaN, 1));
     const c = validateConfig();
-    assert(c.iterations === 20000, 'Default training should run for 20,000 iterations');
+    assert(c.iterations === 10000, 'Default training should run for 10,000 iterations');
     assert(validateConfig({ iterations: 1000000 }).iterations === 1000000);
     assert(validateConfig({ w: 250, b: -250 }).w === 250,
       'Expanded heatmap coordinates must be allowed as initial policy parameters');

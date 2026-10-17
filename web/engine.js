@@ -7,7 +7,7 @@
 export const DEFAULT_CONFIG = Object.freeze({
   learningRate: 0.01,
   batchSize: 16,
-  iterations: 20000,
+  iterations: 10000,
   seed: 42,
   lambda: 4.3,
   horizon: 8,

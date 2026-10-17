@@ -113,7 +113,7 @@ def main():
                 page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
                 return page.locator(selector).evaluate("canvas => canvas.toDataURL()")
 
-            def step_is(iteration, total=20000):
+            def step_is(iteration, total=10000):
                 page.wait_for_function("""({expected, total}) => {
                   const input = document.getElementById('timeline');
                   return Number(input.value) === expected &&
@@ -154,7 +154,7 @@ def main():
 
             config = worker_value("record.config")
             assert {key: config[key] for key in ("iterations", "learningRate", "batchSize", "seed", "lambda", "horizon")} == {
-                "iterations": 20000, "learningRate": 0.05, "batchSize": 16,
+                "iterations": 10000, "learningRate": 0.05, "batchSize": 16,
                 "seed": 42, "lambda": 4.3, "horizon": 8,
             }
             assert config["bandwidths"] == [3, 3.5, 4, 4.5, 5, 5.5, 6]
@@ -210,9 +210,9 @@ def main():
             assert worker_value("record.history.at(-1).iteration") == paused_iteration
             page.locator("#train-button").click()
             state("Complete")
-            step_is(20000)
+            step_is(10000)
             assert page.locator("#train-button").inner_text().split() == ["▶", "Continue"]
-            assert worker_value("record.complete && record.history.length === 20001")
+            assert worker_value("record.complete && record.history.length === 10001")
             assert worker_value("record.history.every((point, index) => point.iteration === index)")
             final_return = current_return()
             assert final_return > initial
@@ -222,14 +222,14 @@ def main():
             assert final_policy != initial_policy
             assert canvas_image("#landscape-chart") != initial_landscape
             page.evaluate("window.__firstHistory = JSON.stringify(window.__trainingWorkers.at(-1).history)")
-            print("PASS: full 20,000-step worker training, pause/resume, live scrub pause, and linked figure updates", flush=True)
+            print("PASS: full 10,000-step worker training, pause/resume, live scrub pause, and linked figure updates", flush=True)
 
             move_slider("#timeline", 0)
             step_is(0)
             assert current_return() == initial
             assert canvas_image("#policy-chart") == initial_policy
-            move_slider("#timeline", 20000)
-            step_is(20000)
+            move_slider("#timeline", 10000)
+            step_is(10000)
             assert current_return() == final_return
             assert canvas_image("#policy-chart") == final_policy
             print("PASS: timeline restores the initial and final policy and exact expected return")
@@ -252,34 +252,34 @@ def main():
             worker_count = page.evaluate("window.__trainingWorkers.length")
             page.locator("#train-button").click()
             state("Training")
-            page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration > 20100")
+            page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration > 10100")
             page.locator("#train-button").click()
             state("Paused")
             continued_iteration = worker_value("record.history.at(-1).iteration")
             assert page.evaluate("window.__trainingWorkers.length") == worker_count, "Continue replaced the worker"
-            assert worker_value("record.extensions") == [40000]
-            assert worker_value("record.iterations") == 40000
+            assert worker_value("record.extensions") == [20000]
+            assert worker_value("record.iterations") == 20000
             assert worker_value("!record.complete && record.history.every((point, index) => point.iteration === index)")
             assert page.evaluate("""window.__firstHistory ===
-              JSON.stringify(window.__trainingWorkers.at(-1).history.slice(0, 20001))"""), "Continue changed the existing trajectory"
-            step_is(continued_iteration, 40000)
+              JSON.stringify(window.__trainingWorkers.at(-1).history.slice(0, 10001))"""), "Continue changed the existing trajectory"
+            step_is(continued_iteration, 20000)
             continued_return = current_return()
             continued_policy = canvas_image("#policy-chart")
             page.wait_for_timeout(180)
             assert worker_value("record.history.at(-1).iteration") == continued_iteration
             move_slider("#timeline", 0)
-            step_is(0, 40000)
+            step_is(0, 20000)
             assert current_return() == initial
             assert canvas_image("#policy-chart") == initial_policy
-            move_slider("#timeline", 20000)
-            step_is(20000, 40000)
+            move_slider("#timeline", 10000)
+            step_is(10000, 20000)
             assert current_return() == final_return
             assert canvas_image("#policy-chart") == final_policy
             move_slider("#timeline", continued_iteration)
-            step_is(continued_iteration, 40000)
+            step_is(continued_iteration, 20000)
             assert current_return() == continued_return
             assert canvas_image("#policy-chart") == continued_policy
-            print("PASS: Continue extends the same worker to 40,000 steps and retains the entire linked timeline", flush=True)
+            print("PASS: Continue extends the same worker to 20,000 steps and retains the entire linked timeline", flush=True)
 
             page.locator("#reset-button").click()
             state("Ready to train")
@@ -296,7 +296,7 @@ def main():
               const history = window.__trainingWorkers.at(-1).history;
               return JSON.stringify(history) === JSON.stringify(JSON.parse(window.__firstHistory).slice(0, history.length));
             }"""), "Explicit Reset did not replay the same seeded trajectory"
-            print("PASS: explicit Reset restores the 20,000-step budget and seeded starting trajectory", flush=True)
+            print("PASS: explicit Reset restores the 10,000-step budget and seeded starting trajectory", flush=True)
 
             page.locator("#reset-button").click()
             state("Ready to train")

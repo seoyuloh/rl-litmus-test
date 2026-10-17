@@ -20,7 +20,7 @@ Open <http://localhost:4173>. Serve the files over HTTP so ES modules and the wo
 1. Click the heatmap to choose a starting policy.
 2. Select a stall penalty and learning rate, then start training.
 3. Watch the path and policy curves change. Pause and resume as needed.
-4. Move the training-step slider to inspect recorded policies. After 20,000 steps, **Continue** adds another 20,000, preserving parameters, Adam state, random-number state, and the full history. **Reset** starts a new 20,000-step run.
+4. Move the training-step slider to inspect recorded policies. After 10,000 steps, **Continue** adds another 10,000, preserving parameters, Adam state, random-number state, and the full history. **Reset** starts a new 10,000-step run.
 
 Runs can be extended to 1,000,000 total updates. Every update remains available in the timeline; long paths are subsampled only for drawing to keep the interface responsive.
 
@@ -32,7 +32,7 @@ The high-bitrate probability is `sigmoid(w × buffer_seconds / 60 + b)`, clipped
 
 Per-chunk reward is `bitrate / 4.3 - stall_penalty × stall_seconds / 4`. The initial download counts as stall. Heatmap values are exact expected total episode returns, averaging all action sequences over the seven traces. The path records actual training updates; grid colors approximate the landscape between sampled parameter points.
 
-Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 20,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the visible reward definition includes a stall-cost example that updates with the slider.
+Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 10,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the visible reward definition includes a stall-cost example that updates with the slider.
 
 The demo trains and evaluates on the same traces. It illustrates this controlled experiment; it does not establish performance on unseen bandwidths or production video streams.
 
@@ -41,7 +41,7 @@ The demo trains and evaluates on the same traces. It illustrates this controlled
 The mathematical port is based on `processing/abr_env.py`, `processing/policy.py`, and `processing/train_vpg_batch_2D.py` at commit `12dced39cf6cd0b44ecbbeac3e8f30392f0471bb`. It preserves buffer normalization, startup stall, reward calculation, and probability clipping.
 
 - The interface fixes the paper's eight-chunk, seven-trace setting. The checked-in source YAML instead specifies four chunks at 4 Mbps.
-- The browser defaults to learning rate 0.05 and 20,000 updates. The Python configuration uses learning rate 0.01 and the same 20,000-update budget.
+- The browser defaults to learning rate 0.05 and 10,000 updates. The Python configuration uses learning rate 0.01 and 20,000 updates.
 - Constant entropy coefficient 0.01 matches the source's effective minimum; the demo does not reproduce its entropy schedule.
 - JavaScript float64 and seeded Mulberry32 replace PyTorch float32 and its RNG. Identical browser configurations reproduce their own runs, but not PyTorch's exact trajectory.
 
