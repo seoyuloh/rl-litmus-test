@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261018-teaching';
-import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261018-teaching';
+import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261018-paperterms';
+import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261018-paperterms';
 
 const $ = (id) => document.getElementById(id);
 const BOUNDS = { wMin: -60, wMax: 80, bMin: -12, bMax: 12, width: 85, height: 65 };
@@ -66,7 +66,7 @@ function updateView() {
     summary = 'Both bitrates are equally likely at every buffer level.';
     kind = 'constant';
   } else if (!snapshot.greedyMonotonic) {
-    label = 'Reversed';
+    label = 'Incorrect';
     summary = 'More buffer can make this policy prefer a lower bitrate.';
     kind = 'reversed';
   } else if (probability(snapshot, 0) <= 0.5 && probability(snapshot, 1) <= 0.5) {
@@ -78,7 +78,7 @@ function updateView() {
     summary = 'This policy always prefers the higher bitrate, even with an empty buffer.';
     kind = 'constant';
   } else {
-    label = 'Buffer-based';
+    label = 'BBA-like';
     summary = `This policy prefers the higher bitrate above ${(snapshot.threshold / 60 * 100).toFixed(1)}% buffer occupancy.`;
     kind = 'learned';
   }
@@ -139,7 +139,7 @@ function prepare(autoStart = false) {
   $('timeline').value = 0;
   $('step-label').value = `Step 0 / ${config.iterations.toLocaleString()}`;
   setState('preparing');
-  const activeWorker = new Worker(new URL('./worker.js?v=20261018-teaching', import.meta.url), { type: 'module' });
+  const activeWorker = new Worker(new URL('./worker.js?v=20261018-paperterms', import.meta.url), { type: 'module' });
   worker = activeWorker;
   activeWorker.onerror = (error) => {
     if (worker === activeWorker) fail(error.message || 'The training worker could not start. Please reload the page.');

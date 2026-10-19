@@ -7,15 +7,15 @@
   <meta name="description" content="The paper behind RL Litmus Test: using heuristic rediscovery to diagnose reinforcement learning in networked systems.">
   <title>Paper &amp; summary · RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261018-math">
+  <link rel="stylesheet" href="./style.css?v=20261018-paperterms">
 </head>
 <body>
   <a class="skip" href="#paper">Skip to the paper</a>
   <header class="site-header">
-    <a class="brand" href="./?v=20261018-math"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
+    <a class="brand" href="./?v=20261018-paperterms"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
     <nav class="site-nav" aria-label="Main navigation">
-      <a href="./?v=20261018-math">Demo</a>
-      <a href="./paper.html?v=20261018-math" aria-current="page">Paper &amp; summary</a>
+      <a href="./?v=20261018-paperterms">Demo</a>
+      <a href="./paper.html?v=20261018-paperterms" aria-current="page">Paper &amp; summary</a>
     </nav>
   </header>
   <main class="paper-main" id="paper">
@@ -34,13 +34,13 @@
       <section aria-labelledby="test-title">
         <h2 id="test-title">Rediscover a rule, diagnose learning</h2>
         <p>Can reinforcement learning recover a familiar heuristic? For adaptive bitrate streaming, the rule is simple: favor higher quality as the playback buffer fills.</p>
-        <p>The paper uses small, inspectable policies to connect the reward landscape, training path, and learned behavior. This separates two causes of failure:</p>
+        <p>The paper uses compact policies to inspect the return landscape, optimization path, and correctness properties. It identifies two failure modes:</p>
         <ul>
-          <li><strong>Optimization:</strong> Training misses a useful policy.</li>
-          <li><strong>Reward:</strong> The objective favors unwanted behavior.</li>
+          <li><strong>F1: Unstable optimization paths.</strong> A high-return ridge exists, but optimization misses it.</li>
+          <li><strong>F2: Distorted return landscapes.</strong> Reward or trace changes shift the high-return region toward undesirable policies.</li>
         </ul>
       </section>
-      <p><a class="primary-link" href="./?v=20261018-math">Explore the demo →</a></p>
+      <p><a class="primary-link" href="./?v=20261018-paperterms">Explore the demo →</a></p>
     </article>
   </main>
 </body>

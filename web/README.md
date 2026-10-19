@@ -1,8 +1,8 @@
 # RL Litmus Test — interactive Figure 2
 
-A browser prototype of the paper's controlled adaptive bitrate (ABR) experiment. Its central question is whether RL can rediscover a familiar buffer-based streaming rule; the landscape, training path, and learned behavior help distinguish optimization problems from objective problems. Two linked plots show where a policy moves during training and what it does at each buffer level:
+A browser prototype of the paper's controlled adaptive bitrate (ABR) experiment. Its central question is whether RL can rediscover a familiar buffer-based streaming rule; the return landscape, optimization path, and learned behavior expose the paper’s two failure modes: **F1: unstable optimization paths** and **F2: distorted return landscapes** (§4.2). F2 includes changes to either the reward or the training-trace distribution. Two linked plots show where a policy moves during training and what it does at each buffer level:
 
-- **Return heatmap:** color shows expected total reward, and the training path shows changes to the two policy parameters, `w` and `b`.
+- **Return heatmap:** color shows expected total reward, and the optimization path shows changes to the two policy parameters, `w` and `b`.
 - **Policy:** two curves show the probability of choosing 4.3 Mbps or 2.85 Mbps as the buffer fills from 0% to 100%.
 
 Training and evaluation run locally in a Web Worker. The site is static HTML, CSS, and JavaScript; it needs no build step, backend, API key, or AI service.
@@ -24,7 +24,9 @@ Open <http://localhost:4173>. Serve the files over HTTP so ES modules and the wo
 
 The demo does not extend completed runs. Every update remains available in the timeline; paths are subsampled only for drawing to keep the interface responsive. The worker also enforces the 10,000-step limit. Versioned module URLs keep the app, worker, and training engine on the same release.
 
-Definitions are available through info buttons (hover, focus, or tap; Escape dismisses them). The setup, RL update, and diagnostic limits are expandable below the experiment. `paper.html` contains the paper metadata, a manuscript PDF, and an explicitly labeled AI-generated summary. The included PDF is the local manuscript, not a claim of a final camera-ready version.
+Policy labels follow §3.2: BBA-like, conservative, aggressive, and incorrect (bitrate decreasing with buffer). The initial 50/50 policy is labeled Balanced.
+
+Definitions are available through info buttons (hover, focus, or tap; Escape dismisses them). The setup, RL update, and failure modes are expandable below the experiment. `paper.html` contains the paper metadata, a manuscript PDF, and an explicitly labeled AI-generated summary. The included PDF is the local manuscript, not a claim of a final camera-ready version.
 
 ## Experiment
 

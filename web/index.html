@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f9fb">
-  <meta name="description" content="Can reinforcement learning rediscover a familiar streaming rule? Train an ABR policy and inspect its reward, training path, and bitrate choices.">
+  <meta name="description" content="Can reinforcement learning rediscover a familiar streaming rule? Train an ABR policy and inspect its return landscape, optimization path, and bitrate choices.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261018-math">
-  <script type="module" src="./ui.js?v=20261018-teaching"></script>
-  <script type="module" src="./app.js?v=20261018-teaching"></script>
+  <link rel="stylesheet" href="./style.css?v=20261018-paperterms">
+  <script type="module" src="./ui.js?v=20261018-paperterms"></script>
+  <script type="module" src="./app.js?v=20261018-paperterms"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
   <header class="site-header">
-    <a class="brand" href="./?v=20261018-math"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
-    <nav class="site-nav" aria-label="Main navigation"><a href="./?v=20261018-math" aria-current="page">Demo</a><a href="./paper.html?v=20261018-math">Paper &amp; summary</a></nav>
+    <a class="brand" href="./?v=20261018-paperterms"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="./?v=20261018-paperterms" aria-current="page">Demo</a><a href="./paper.html?v=20261018-paperterms">Paper &amp; summary</a></nav>
   </header>
   <main>
     <section class="intro" aria-labelledby="demo-title">
@@ -44,7 +44,7 @@
       <div class="plots">
         <section class="plot-panel" aria-labelledby="landscape-title">
           <div class="plot-heading"><h2 id="landscape-title">Return landscape</h2><button type="button" class="info-button" data-help="tip-landscape" aria-label="About the return landscape" aria-controls="tip-landscape" aria-expanded="false">i</button></div>
-          <div class="info-popover" id="tip-landscape" role="tooltip" hidden><p>Each point is a policy with weight <em>w</em> and bias <em>b</em>. Brighter means higher expected return. The orange line traces training; the dot marks the selected step.</p></div>
+          <div class="info-popover" id="tip-landscape" role="tooltip" hidden><p>Each point is a policy with weight <em>w</em> and bias <em>b</em>. Brighter means higher expected return. The orange line is the optimization path; the dot marks the selected step.</p></div>
           <div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div>
           <div class="plot-footer"><span>Expected return <strong id="current-return">—</strong></span></div>
         </section>
@@ -64,10 +64,10 @@
     </section>
 
     <section class="explanation" aria-labelledby="experiment-title">
-      <div class="explanation-intro"><h2 id="experiment-title">The controlled ABR experiment</h2><p>Rediscovering the buffer rule helps distinguish <strong>training problems</strong> from <strong>reward problems</strong>.</p></div>
+      <div class="explanation-intro"><h2 id="experiment-title">The controlled ABR experiment</h2><p>Two failure modes: <strong>unstable optimization paths</strong> and <strong>distorted return landscapes</strong>.</p></div>
       <div class="comparison">
-        <div><h3>Change how it learns</h3><p>Change the learning rate or starting point to compare training paths on the same landscape.</p></div>
-        <div><h3>Change what it learns</h3><p>Change the stall penalty to see which policies the reward favors.</p></div>
+        <div><h3>Change the optimization path</h3><p>Change the learning rate or starting point to compare optimization paths on the same landscape.</p></div>
+        <div><h3>Change the return landscape</h3><p>Change the stall penalty to see how the return landscape shifts.</p></div>
       </div>
       <details class="about" id="method-details">
         <summary>Setup and reward</summary>
@@ -126,15 +126,15 @@
         </div>
       </details>
       <details class="about" id="diagnosis-details">
-        <summary>What to look for</summary>
+        <summary>Failure modes</summary>
         <div class="details-body">
-          <p><strong>Training problem:</strong> A useful policy exists, but training misses it.</p>
-          <p><strong>Reward problem:</strong> The objective favors unwanted behavior, such as high bitrate despite stalls.</p>
+          <p><strong>F1: Unstable optimization paths.</strong> A high-return ridge exists, but optimization misses it.</p>
+          <p><strong>F2: Distorted return landscapes.</strong> Reward or trace changes shift the high-return region toward undesirable policies.</p>
         </div>
       </details>
     </section>
   </main>
-  <footer><a href="./paper.html?v=20261018-math">About the paper</a><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a></footer>
+  <footer><a href="./paper.html?v=20261018-paperterms">About the paper</a><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a></footer>
   <noscript><p class="error">Please enable JavaScript to use the demo.</p></noscript>
 </body>
 </html>
