@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import tempfile
 import threading
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from playwright.sync_api import sync_playwright
 
@@ -285,7 +285,7 @@ def main():
 
                 paper_link = page.get_by_role('link', name='Paper & summary', exact=True).first
                 paper_url = urljoin(url, paper_link.get_attribute('href'))
-                assert paper_url.endswith('/paper.html'), paper_url
+                assert urlparse(paper_url).path.endswith('/paper.html'), paper_url
                 paper_page = context.new_page()
                 response = paper_page.goto(paper_url)
                 assert response and response.ok
