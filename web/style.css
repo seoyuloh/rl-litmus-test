@@ -116,7 +116,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 .paper-links > a:not(.primary-link) { text-decoration: underline; text-underline-offset: 4px; }
 .primary-link { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; background: #263e5b; padding: 11px 18px; border-radius: 6px; color: white; font-size: 17px; text-decoration: none !important; }
 .primary-link:hover { background: #344f70; }
-.summary-label { border-top: 1px solid var(--border); padding-top: 28px; margin: 0 0 24px; font-size: 17px; color: #596779; }
+.paper-abstract { border-top: 1px solid var(--border); padding-top: 28px; }
 .paper-article section { margin-bottom: 30px; }
 .paper-article h2 { font-size: 25px; line-height: 1.4; letter-spacing: -.35px; margin: 0 0 13px; }
 .paper-article section p, .paper-article li { font-size: 18px; line-height: 1.8; margin: 0 0 14px; }

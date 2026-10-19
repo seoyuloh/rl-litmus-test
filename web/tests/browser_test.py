@@ -283,7 +283,7 @@ def main():
                 touch_context.close()
                 print('PASS: touch opens every help popup and an outside tap dismisses it', flush=True)
 
-                paper_link = page.get_by_role('link', name='Paper & summary', exact=True).first
+                paper_link = page.get_by_role('link', name='Paper', exact=True).first
                 paper_url = urljoin(url, paper_link.get_attribute('href'))
                 assert urlparse(paper_url).path.endswith('/paper.html'), paper_url
                 paper_page = context.new_page()
@@ -296,7 +296,7 @@ def main():
                 paper_page.close()
                 assert not errors, errors
                 assert not failed_requests, failed_requests
-                print(f'PASS: paper summary and manuscript links, defaults, short training, and Reset; screenshots in {artifacts}', flush=True)
+                print(f'PASS: paper abstract and manuscript links, defaults, short training, and Reset; screenshots in {artifacts}', flush=True)
                 context.close()
                 browser.close()
                 return

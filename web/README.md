@@ -26,7 +26,7 @@ The demo does not extend completed runs. Every update remains available in the t
 
 Policy labels follow §3.2: BBA-like, conservative, aggressive, and incorrect (bitrate decreasing with buffer). The initial 50/50 policy is labeled Balanced.
 
-Definitions are available through info buttons (hover, focus, or tap; Escape dismisses them). The setup, RL update, and failure modes are expandable below the experiment. `paper.html` contains the paper metadata, a manuscript PDF, and an explicitly labeled AI-generated summary. The included PDF is the local manuscript, not a claim of a final camera-ready version.
+Definitions are available through info buttons (hover, focus, or tap; Escape dismisses them). The setup, RL update, and failure modes are expandable below the experiment. `paper.html` contains the paper metadata, a manuscript PDF, and a shortened version of the paper’s abstract. The included PDF is the local manuscript, not a claim of a final camera-ready version.
 
 ## Experiment
 
