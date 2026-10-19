@@ -98,7 +98,11 @@ canvas, .policy-visual { display: block; width: 100%; height: 400px; }
 .details-body p { margin: 0 0 16px; font-size: 17px; line-height: 1.8; }
 .details-body p:last-child { margin-bottom: 0; }
 .details-body a, .paper-article p a { text-decoration: underline; text-underline-offset: 4px; }
-.reward-formula, .math-line { background: #edf1f6; padding: 16px 18px; border-radius: 6px; color: #263447; overflow-wrap: anywhere; }
+.reward-formula { background: #edf1f6; padding: 16px 18px; border-radius: 6px; color: #263447; overflow-wrap: anywhere; }
+math { font-family: "STIX Two Math", "STIX Math", "Cambria Math", math; }
+.math-equation { margin: 18px 0; padding: 12px 0; overflow-x: auto; }
+.math-equation math { width: max-content; min-width: 100%; margin: 0; font-size: 24px; }
+.math-equation .math-narrow { display: none; }
 .reward-formula { display: flex; flex-wrap: wrap; gap: 0 .35em; font-weight: 550; }
 footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: 16px; color: var(--muted); padding-top: 28px; padding-bottom: 32px; }
 .error { font-size: 16px; color: #954421; background: #fff0e9; border: 1px solid #f1cdbd; padding: 13px; margin: 16px 24px; border-radius: 6px; line-height: 1.6; }
@@ -142,6 +146,8 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .legend { padding-left: 74px; }
 }
 @media (max-width: 540px) {
+  .math-equation .math-wide { display: none; }
+  .math-equation .math-narrow { display: block; }
   header, main, footer { padding-left: 18px; padding-right: 18px; }
   .site-header { flex-direction: column; align-items: flex-start; gap: 8px; }
   .brand { font-size: 21px; }

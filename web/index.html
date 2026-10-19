@@ -7,15 +7,15 @@
   <meta name="description" content="Can reinforcement learning rediscover a familiar streaming rule? Train an ABR policy and inspect its reward, training path, and bitrate choices.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261018-teaching">
+  <link rel="stylesheet" href="./style.css?v=20261018-math">
   <script type="module" src="./ui.js?v=20261018-teaching"></script>
   <script type="module" src="./app.js?v=20261018-teaching"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
   <header class="site-header">
-    <a class="brand" href="./?v=20261018-concise"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
-    <nav class="site-nav" aria-label="Main navigation"><a href="./?v=20261018-concise" aria-current="page">Demo</a><a href="./paper.html?v=20261018-concise">Paper &amp; summary</a></nav>
+    <a class="brand" href="./?v=20261018-math"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="./?v=20261018-math" aria-current="page">Demo</a><a href="./paper.html?v=20261018-math">Paper &amp; summary</a></nav>
   </header>
   <main>
     <section class="intro" aria-labelledby="demo-title">
@@ -80,11 +80,48 @@
       <details class="about" id="rl-details">
         <summary>How RL learns</summary>
         <div class="details-body">
-          <p>Two parameters, <em>w</em> and <em>b</em>, determine the bitrate probabilities:</p>
-          <p class="math-line">P(high bitrate) = sigmoid(w × buffer seconds / 60 + b)</p>
-          <p>REINFORCE updates the policy using rewards from 16 sampled episodes per step:</p>
-          <p class="math-line" aria-label="The policy gradient estimate is the average, over sampled episodes and time steps, of future return times the gradient of the log action probability.">ĝ = average of G<sub>t</sub> ∇<sub>θ</sub> log π<sub>θ</sub>(a<sub>t</sub> | s<sub>t</sub>)</p>
-          <p>θ = (w, b); π is the policy; G<sub>t</sub> is reward from step <em>t</em> onward. Updates use Adam with a small entropy bonus.</p>
+          <p>With parameters <math><mi>θ</mi><mo>=</mo><mo stretchy="false">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="false">)</mo></math>, buffer state <math><mi>s</mi><mo>=</mo><mi>B</mi><mo>/</mo><mn>60</mn></math> (<math><mi>B</mi></math> in seconds), and sigmoid <math><mi>σ</mi></math>:</p>
+          <div class="math-equation">
+            <math display="block" aria-label="The probability of high bitrate given buffer state s equals sigmoid of w s plus b.">
+              <msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mtext>high</mtext><mo>∣</mo><mi>s</mi><mo stretchy="false">)</mo>
+              <mo>=</mo><mi>σ</mi><mo stretchy="false">(</mo><mi>w</mi><mi>s</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo>
+            </math>
+          </div>
+          <p>REINFORCE uses <math><mi>N</mi><mo>=</mo><mn>16</mn></math> episodes of <math><mi>T</mi><mo>=</mo><mn>8</mn></math> chunks to estimate the policy gradient:</p>
+          <div class="math-equation" id="policy-gradient-equation">
+            <math class="math-wide" display="block" aria-label="g hat of theta equals one over N T times the sum over episodes i from one to N and steps t from zero to T minus one of G t i times the theta gradient of log pi theta of action a t i given state s t i.">
+              <mover accent="true"><mi>g</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo>
+              <mfrac><mn>1</mn><mrow><mi>N</mi><mi>T</mi></mrow></mfrac>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover>
+              <munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></munderover>
+              <msubsup><mi>G</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup>
+              <msub><mo>∇</mo><mi>θ</mi></msub><mspace width="0.17em"/><mi>log</mi><mspace width="0.17em"/>
+              <msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo>
+              <msubsup><mi>a</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>∣</mo>
+              <msubsup><mi>s</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo>
+            </math>
+            <math class="math-narrow" display="block" aria-label="g hat of theta equals one over N T times the sum over episodes i from one to N and steps t from zero to T minus one of G t i times the theta gradient of log pi theta of action a t i given state s t i.">
+              <mtable columnalign="left" columnspacing="0" rowspacing="0.35em">
+                <mtr><mtd><mstyle displaystyle="true"><mover accent="true"><mi>g</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo>
+              <mfrac><mn>1</mn><mrow><mi>N</mi><mi>T</mi></mrow></mfrac>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover>
+              <munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></munderover>
+              <msubsup><mi>G</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup></mstyle></mtd></mtr>
+                <mtr><mtd><mstyle displaystyle="true"><mspace width="1em"/><mo>×</mo><mspace width="0.17em"/><msub><mo>∇</mo><mi>θ</mi></msub><mspace width="0.17em"/><mi>log</mi><mspace width="0.17em"/>
+              <msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo>
+              <msubsup><mi>a</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>∣</mo>
+              <msubsup><mi>s</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">)</mo></mstyle></mtd></mtr>
+              </mtable>
+            </math>
+          </div>
+          <div class="math-equation" id="return-to-go-equation">
+            <math display="block" aria-label="G t i equals the sum of chunk rewards r k i from k equals t through T minus one.">
+              <msubsup><mi>G</mi><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo>
+              <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mi>t</mi></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></munderover>
+              <msubsup><mi>r</mi><mi>k</mi><mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msubsup>
+            </math>
+          </div>
+          <p><math><msub><mi>a</mi><mi>t</mi></msub></math> is the bitrate choice; <math><msub><mi>r</mi><mi>t</mi></msub></math> is the chunk reward. Updates use Adam with a small entropy bonus.</p>
           <p><strong>Training runs anew in your browser.</strong> The heatmap shows evaluated policies, not saved training paths.</p>
         </div>
       </details>
@@ -97,7 +134,7 @@
       </details>
     </section>
   </main>
-  <footer><a href="./paper.html?v=20261018-concise">About the paper</a><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a></footer>
+  <footer><a href="./paper.html?v=20261018-math">About the paper</a><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a></footer>
   <noscript><p class="error">Please enable JavaScript to use the demo.</p></noscript>
 </body>
 </html>
