@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import tempfile
 import threading
+from urllib.parse import urljoin
 
 from playwright.sync_api import sync_playwright
 
@@ -24,6 +25,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", help="An already running prototype URL")
     parser.add_argument("--artifacts", default=str(Path(tempfile.gettempdir()) / "rl-litmus-artifacts"))
+    parser.add_argument("--ui-only", action="store_true", help="Check controls, help, links, and short training without a full run")
     args = parser.parse_args()
     artifacts = Path(args.artifacts)
     artifacts.mkdir(parents=True, exist_ok=True)
@@ -129,6 +131,176 @@ def main():
                 }""", arg={"expected": iteration, "total": total})
 
             state("Ready to train")
+            if args.ui_only:
+                # Use document coordinates so browser scrolling on narrow
+                # screens cannot masquerade as a layout shift.
+                measure = """() => Object.fromEntries(['penalty', 'learning-rate'].map(id => {
+                  const r = document.getElementById(id).getBoundingClientRect();
+                  return [id, {x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height}];
+                }))"""
+                help_ids = ['tip-penalty', 'tip-rate', 'tip-landscape', 'tip-policy', 'tip-timeline']
+
+                def stable_geometry(expected, actual, label):
+                    for control in expected:
+                        for dimension in expected[control]:
+                            delta = abs(actual[control][dimension] - expected[control][dimension])
+                            assert delta <= 1, f"{label}: {control}.{dimension} moved {delta:.2f}px"
+
+                def check_popover(active_page, help_id):
+                    trigger = active_page.locator(f'.info-button[data-help="{help_id}"]')
+                    popup = active_page.locator(f'#{help_id}')
+                    popup.wait_for(state="visible")
+                    assert trigger.get_attribute("aria-controls") == help_id
+                    assert trigger.get_attribute("aria-expanded") == "true"
+                    assert trigger.get_attribute("aria-label"), f"Missing help label: {help_id}"
+                    assert popup.get_attribute("role") == "tooltip"
+                    assert popup.inner_text().strip()
+                    assert popup.evaluate("""el => {
+                      const r = el.getBoundingClientRect();
+                      if (r.left < 0 || r.top < 0 || r.right > innerWidth + 1 || r.bottom > innerHeight + 1) return false;
+                      const points = [[r.left + 10, r.top + r.height / 2], [r.right - 10, r.top + r.height / 2],
+                        [r.left + r.width / 2, r.top + 10], [r.left + r.width / 2, r.bottom - 10]];
+                      return points.every(([x, y]) => el.contains(document.elementFromPoint(x, y)));
+                    }"""), f"Help is clipped or covered: {help_id}"
+
+                for width, height, name in [(1440, 1100, 'desktop'), (1200, 1000, 'narrow-desktop'),
+                                            (900, 1100, 'tablet'), (390, 844, 'mobile')]:
+                    page.set_viewport_size({"width": width, "height": height})
+                    page.goto(url)
+                    state("Ready to train")
+                    assert worker_value("record.config.iterations") == 10000
+                    assert worker_value("record.config.w === 0 && record.config.b === 0")
+                    assert worker_value("record.history.length === 1 && record.history[0].w === 0 && record.history[0].b === 0")
+                    assert page.locator("#policy-label").evaluate("el => el.tagName") == "STRONG"
+                    assert page.locator("#policy-label").inner_text().strip()
+                    assert page.locator("#policy-summary").inner_text().strip()
+                    for detail in ('#method-details', '#rl-details', '#diagnosis-details'):
+                        assert not page.locator(detail).evaluate("el => el.open")
+                    step_is(0)
+                    baseline = page.evaluate(measure)
+                    page.evaluate("""() => {
+                      window.__dragSamples = [];
+                      for (const id of ['penalty', 'learning-rate']) {
+                        document.getElementById(id).addEventListener('input', () => {
+                          const geometry = Object.fromEntries(['penalty', 'learning-rate'].map(key => {
+                            const r = document.getElementById(key).getBoundingClientRect();
+                            return [key, {x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height}];
+                          }));
+                          window.__dragSamples.push({id, state: document.getElementById('run-status').textContent, geometry});
+                        });
+                      }
+                    }""")
+                    page.locator("#train-button").click()
+                    state("Training")
+                    stable_geometry(baseline, page.evaluate(measure), f"{width}px running")
+                    page.wait_for_function("window.__trainingWorkers.at(-1).history.at(-1).iteration >= 24")
+                    page.locator("#train-button").click()
+                    state("Paused")
+                    stable_geometry(baseline, page.evaluate(measure), f"{width}px paused")
+                    assert worker_value("record.history.some(point => point.w !== 0 || point.b !== 0)")
+                    assert worker_value("record.history.every(point => Number.isFinite(point.w) && Number.isFinite(point.b) && Number.isFinite(point.return))")
+
+                    for selector, config_key in (('#penalty', 'lambda'), ('#learning-rate', 'learningRate')):
+                        slider = page.locator(selector)
+                        slider.scroll_into_view_if_needed()
+                        box = slider.bounding_box()
+                        low, high = float(slider.get_attribute('min')), float(slider.get_attribute('max'))
+                        fraction = (float(slider.input_value()) - low) / (high - low)
+                        track_width = box['width'] - 16
+                        y = box['y'] + box['height'] / 2
+                        page.mouse.move(box['x'] + 8 + track_width * fraction, y)
+                        page.mouse.down()
+                        page.mouse.move(box['x'] + 8 + track_width * 0.8, y, steps=10)
+                        page.mouse.up()
+                        state("Ready to train")
+                        samples = page.evaluate("window.__dragSamples")
+                        matching = [sample for sample in samples if sample['id'] == selector[1:]]
+                        assert matching and any(sample['state'] == 'Preparing…' for sample in matching)
+                        for sample in matching:
+                            stable_geometry(baseline, sample['geometry'], f"{width}px {selector} drag")
+                        stable_geometry(baseline, page.evaluate(measure), f"{width}px after {selector} drag")
+                        assert worker_value(f"record.config.{config_key}") == float(slider.input_value())
+                        assert worker_value("record.history.length === 1")
+
+                    move_slider('#penalty', 4.3)
+                    state("Ready to train")
+                    move_slider('#learning-rate', 0.05)
+                    state("Ready to train")
+                    page.locator('#reset-button').click()
+                    state("Ready to train")
+                    step_is(0)
+                    assert worker_value("record.config.iterations === 10000 && record.history[0].w === 0 && record.history[0].b === 0")
+                    stable_geometry(baseline, page.evaluate(measure), f"{width}px reset")
+
+                    for help_id in help_ids:
+                        trigger = page.locator(f'.info-button[data-help="{help_id}"]')
+                        popup = page.locator(f'#{help_id}')
+                        trigger.hover()
+                        check_popover(page, help_id)
+                        popup.hover()
+                        check_popover(page, help_id)
+                        page.keyboard.press('Escape')
+                        popup.wait_for(state='hidden')
+                        assert trigger.get_attribute('aria-expanded') == 'false'
+                        trigger.focus()
+                        check_popover(page, help_id)
+                        page.keyboard.press('Escape')
+                        popup.wait_for(state='hidden')
+
+                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"Overflow at {width}px"
+                    labels = [' '.join(label.split()) for label in page.locator('.legend > span').all_text_contents()]
+                    assert labels == ['4.3 Mbps · high bitrate', '2.85 Mbps · low bitrate'], labels
+                    legend = page.locator('.legend').bounding_box()
+                    chart = page.locator('#policy-chart').bounding_box()
+                    assert legend['y'] + legend['height'] <= chart['y'] + 1
+                    page.evaluate('scrollTo(0, 0)')
+                    page.screenshot(path=str(artifacts / f'{name}.png'), full_page=True)
+                    print(f"PASS: {width}px real slider drags stay fixed across ready/preparing/running/paused; help is accessible and unclipped", flush=True)
+
+                page.locator('#method-details summary').click()
+                assert page.locator('#reward-formula').is_visible()
+                assert 'bitrate / 4.3' in page.locator('#reward-formula').inner_text()
+                assert 'stall seconds / 4' in page.locator('#reward-formula').inner_text()
+                page.locator('#method-details summary').click()
+                for detail in ('#rl-details', '#diagnosis-details'):
+                    page.locator(f'{detail} summary').click()
+                    assert page.locator(detail).evaluate('el => el.open')
+                    page.locator(f'{detail} summary').click()
+
+                touch_context = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+                touch_page = touch_context.new_page()
+                touch_page.on('pageerror', lambda error: errors.append(str(error)))
+                touch_page.on('requestfailed', lambda request: failed_requests.append(request.url))
+                touch_page.goto(url)
+                touch_page.wait_for_function("document.getElementById('run-status').textContent === 'Ready to train'")
+                for help_id in help_ids:
+                    trigger = touch_page.locator(f'.info-button[data-help="{help_id}"]')
+                    trigger.tap()
+                    check_popover(touch_page, help_id)
+                    touch_page.locator('h1').tap()
+                    touch_page.locator(f'#{help_id}').wait_for(state='hidden')
+                    assert trigger.get_attribute('aria-expanded') == 'false'
+                touch_context.close()
+                print('PASS: touch opens every help popup and an outside tap dismisses it', flush=True)
+
+                paper_link = page.get_by_role('link', name='Paper & summary', exact=True).first
+                paper_url = urljoin(url, paper_link.get_attribute('href'))
+                assert paper_url.endswith('/paper.html'), paper_url
+                paper_page = context.new_page()
+                response = paper_page.goto(paper_url)
+                assert response and response.ok
+                assert paper_page.locator('h1').inner_text().strip()
+                manuscript = paper_page.locator('a[href$="paper.pdf"]').first
+                pdf = context.request.get(urljoin(paper_url, manuscript.get_attribute('href')))
+                assert pdf.ok and pdf.body().startswith(b'%PDF'), 'Manuscript link does not serve a PDF'
+                paper_page.close()
+                assert not errors, errors
+                assert not failed_requests, failed_requests
+                print(f'PASS: paper summary and manuscript links, defaults, short training, and Reset; screenshots in {artifacts}', flush=True)
+                context.close()
+                browser.close()
+                return
+
             math = page.evaluate("async () => (await import('./tests/engine.test.js')).runTests()")
             assert math["failed"] == 0, math
             print(f"PASS: {math['passed']} mathematical test groups")
@@ -177,9 +349,11 @@ def main():
             assert page.locator("#learning-rate").get_attribute("step") == "0.001"
             assert float(page.locator("#learning-rate").input_value()) == 0.05
             assert float(page.locator("#learning-rate-value").inner_text()) == 0.05
+            page.locator("#method-details summary").click()
             assert page.locator("#reward-formula").is_visible()
             assert "bitrate / 4.3" in page.locator("#reward-formula").inner_text()
             assert "stall seconds / 4" in page.locator("#reward-formula").inner_text()
+            page.locator("#method-details summary").click()
             step_is(0)
             initial = current_return()
             assert abs(initial - worker_value("record.history[0].return")) < 0.0051

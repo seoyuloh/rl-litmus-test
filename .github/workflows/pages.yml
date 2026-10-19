@@ -31,7 +31,7 @@ jobs:
       - name: Stage static site
         run: |
           mkdir -p _site
-          cp web/index.html web/style.css web/app.js web/charts.js web/engine.js web/worker.js web/favicon.svg web/.nojekyll _site/
+          cp web/index.html web/paper.html web/paper.pdf web/style.css web/ui.js web/app.js web/charts.js web/engine.js web/worker.js web/favicon.svg web/.nojekyll _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

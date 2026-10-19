@@ -1,6 +1,6 @@
 # RL Litmus Test — interactive Figure 2
 
-A browser prototype of the paper's controlled adaptive bitrate (ABR) experiment. Two linked plots show where a policy moves during training and what it does at each buffer level:
+A browser prototype of the paper's controlled adaptive bitrate (ABR) experiment. Its central question is whether RL can rediscover a familiar buffer-based streaming rule; the landscape, training path, and learned behavior help distinguish optimization problems from objective problems. Two linked plots show where a policy moves during training and what it does at each buffer level:
 
 - **Return heatmap:** color shows expected total reward, and the training path shows changes to the two policy parameters, `w` and `b`.
 - **Policy:** two curves show the probability of choosing 4.3 Mbps or 2.85 Mbps as the buffer fills from 0% to 100%.
@@ -24,6 +24,8 @@ Open <http://localhost:4173>. Serve the files over HTTP so ES modules and the wo
 
 The demo does not extend completed runs. Every update remains available in the timeline; paths are subsampled only for drawing to keep the interface responsive. The worker also enforces the 10,000-step limit. Versioned module URLs keep the app, worker, and training engine on the same release.
 
+Definitions are available through info buttons (hover, focus, or tap; Escape dismisses them). The setup, RL update, and diagnostic limits are expandable below the experiment. `paper.html` contains the paper metadata, a manuscript PDF, and an explicitly labeled AI-generated summary. The included PDF is the local manuscript, not a claim of a final camera-ready version.
+
 ## Experiment
 
 The demo uses eight four-second chunks and seven constant-bandwidth traces from 3 to 6 Mbps in 0.5 Mbps increments. Every episode starts with an empty buffer; the buffer is capped at 60 seconds.
@@ -32,7 +34,7 @@ The high-bitrate probability is `sigmoid(w × buffer_seconds / 60 + b)`, clipped
 
 Per-chunk reward is `bitrate / 4.3 - stall_penalty × stall_seconds / 4`. The initial download counts as stall. Heatmap values are exact expected total episode returns, averaging all action sequences over the seven traces. The path records actual training updates; grid colors approximate the landscape between sampled parameter points.
 
-Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 10,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the reward formula is shown below the plots.
+Training uses sampled, undiscounted REINFORCE with return-to-go, averaged over batch timesteps, and Adam. The default budget is 10,000 updates, with batch size 16, seed 42, and entropy coefficient 0.01. The learning-rate slider ranges from 0.001 to 0.2 in increments of 0.001; the default is 0.05. Changing either setting starts a fresh run. Changing the stall penalty changes the reward objective; the reward formula is in the expandable streaming setup below the plots.
 
 The demo trains and evaluates on the same traces. It illustrates this controlled experiment; it does not establish performance on unseen bandwidths or production video streams.
 
@@ -56,7 +58,7 @@ python3 -m pip install playwright
 python3 web/tests/browser_test.py
 ```
 
-It uses installed Google Chrome, falling back to Playwright Chromium. If needed, install Chromium with `python3 -m playwright install chromium`. To check an existing server, pass `--url http://localhost:4173`. This tooling is required only for validation.
+It uses installed Google Chrome, falling back to Playwright Chromium. If needed, install Chromium with `python3 -m playwright install chromium`. To check an existing server, pass `--url http://localhost:4173`. Use `--ui-only` for a shorter interaction check covering fixed slider positions during actual drags, responsive layouts, accessible help, short training, reset behavior, and paper links. The default runner also verifies a full 10,000-step run and fresh restart. This tooling is required only for validation.
 
 ## Publish with GitHub Pages
 

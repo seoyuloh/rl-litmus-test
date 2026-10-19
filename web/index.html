@@ -4,40 +4,104 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f9fb">
-  <meta name="description" content="Train an ABR policy in your browser and watch its path across the return landscape and its bitrate choices change together.">
+  <meta name="description" content="Can reinforcement learning rediscover a familiar streaming rule? Train an ABR policy and inspect its reward, training path, and bitrate choices.">
   <title>RL Litmus Test</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=20261016-origin0">
-  <script type="module" src="./app.js?v=20261016-origin0"></script>
+  <link rel="stylesheet" href="./style.css?v=20261018-teaching">
+  <script type="module" src="./ui.js?v=20261018-teaching"></script>
+  <script type="module" src="./app.js?v=20261018-teaching"></script>
 </head>
 <body>
   <a class="skip" href="#experiment">Skip to the experiment</a>
-  <header><a class="brand" href="./"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a><span class="local-note"><i aria-hidden="true"></i>Live in your browser</span></header>
+  <header class="site-header">
+    <a class="brand" href="./"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="./" aria-current="page">Demo</a><a href="./paper.html">Paper &amp; summary</a></nav>
+  </header>
   <main>
-    <section class="intro"><h1>Watch a policy learn.</h1><p>Press Train to watch the policy learn, or click the heatmap to choose a starting point.</p></section>
+    <section class="intro" aria-labelledby="demo-title">
+      <h1 id="demo-title">Can RL rediscover a simple streaming rule?</h1>
+      <p>Adaptive bitrate (ABR) streaming chooses video quality to balance picture quality and playback stalls. Here, reinforcement learning (RL) trains a policy to choose between two bitrates in a controlled simulator.</p>
+      <p class="demo-question"><strong>The test:</strong> Does the policy learn to favor a higher bitrate as the playback buffer fills?</p>
+    </section>
+    <p class="start-guide">Adjust the stall penalty and learning rate, then press <strong>Train</strong>. Click the heatmap to change the starting policy.</p>
     <section class="experiment" id="experiment" aria-label="Interactive ABR experiment">
       <div class="toolbar">
-        <div class="setting-control"><label for="penalty">Stall penalty <output id="penalty-value" for="penalty">4.3</output></label><input id="penalty" type="range" min="0" max="10" step="0.1" value="4.3" aria-describedby="penalty-hint"><div class="range-limits" aria-hidden="true"><span>0</span><span>10</span></div><p id="penalty-hint">How much reward is lost when video pauses to buffer. Higher values put more weight on avoiding stalls.</p></div>
-        <div class="setting-control"><label for="learning-rate">Learning rate <output id="learning-rate-value" for="learning-rate">0.05</output></label><input id="learning-rate" type="range" min="0.001" max="0.2" step="0.001" value="0.05" aria-describedby="learning-rate-hint"><div class="range-limits" aria-hidden="true"><span>0.001</span><span>0.2</span></div><p id="learning-rate-hint">How much the policy changes each update. Larger values take bigger steps and can overshoot.</p></div>
+        <div class="setting-control">
+          <div class="setting-label"><label for="penalty">Stall penalty</label><button type="button" class="info-button" data-help="tip-penalty" aria-label="About stall penalty" aria-controls="tip-penalty" aria-expanded="false">i</button><output id="penalty-value" for="penalty">4.3</output></div>
+          <input id="penalty" type="range" min="0" max="10" step="0.1" value="4.3" aria-describedby="tip-penalty">
+          <div class="range-limits" aria-hidden="true"><span>0</span><span>10</span></div>
+          <div class="info-popover" id="tip-penalty" role="tooltip" hidden><p>How strongly the reward penalizes time spent waiting for video. A larger penalty makes avoiding stalls more valuable relative to picture quality. Changing it changes the return landscape and resets training.</p></div>
+        </div>
+        <div class="setting-control">
+          <div class="setting-label"><label for="learning-rate">Learning rate</label><button type="button" class="info-button" data-help="tip-rate" aria-label="About learning rate" aria-controls="tip-rate" aria-expanded="false">i</button><output id="learning-rate-value" for="learning-rate">0.05</output></div>
+          <input id="learning-rate" type="range" min="0.001" max="0.2" step="0.001" value="0.05" aria-describedby="tip-rate">
+          <div class="range-limits" aria-hidden="true"><span>0.001</span><span>0.2</span></div>
+          <div class="info-popover" id="tip-rate" role="tooltip" hidden><p>Sets the scale of each training update. Larger steps can move faster but can also overshoot useful regions. Changing it resets training; the return landscape stays the same.</p></div>
+        </div>
         <div class="actions"><span class="run-status" id="run-status" role="status">Preparing…</span><button id="reset-button" class="reset-button" disabled>Reset</button><button id="train-button" class="train-button" disabled>Getting ready…</button></div>
       </div>
       <p class="error" id="error-message" role="alert" hidden></p>
       <div class="plots">
-        <section class="plot-panel" aria-labelledby="landscape-title"><div class="plot-heading"><h2 id="landscape-title"><span>(a)</span> Return landscape</h2><p>Brighter means a higher return. The orange line is the training path.</p></div><div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point." title="Click to choose a starting point. Arrow keys move it when the map has keyboard focus."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div><div class="plot-footer"><span class="map-hint">Click to choose a starting point</span><span>Return <strong id="current-return">—</strong></span></div></section>
-        <section class="plot-panel" aria-labelledby="policy-title"><div class="plot-heading"><h2 id="policy-title"><span>(b)</span> Bitrate policy</h2><p>With more video buffered, does it choose a higher bitrate?</p></div><div class="policy-visual"><div class="legend" aria-label="Bitrate legend"><span><i class="high-line" aria-hidden="true"></i>4.3 Mbps · high bitrate</span><span><i class="low-line" aria-hidden="true"></i>2.85 Mbps · low bitrate</span></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas></div></section>
+        <section class="plot-panel" aria-labelledby="landscape-title">
+          <div class="plot-heading"><h2 id="landscape-title">Return landscape</h2><button type="button" class="info-button" data-help="tip-landscape" aria-label="About the return landscape" aria-controls="tip-landscape" aria-expanded="false">i</button></div>
+          <div class="info-popover" id="tip-landscape" role="tooltip" hidden><p>Each point is a policy with weight <em>w</em> and bias <em>b</em>. Brighter colors mean higher expected total reward. The orange line traces training; the dot marks the selected step. Arrow keys move the starting point when the heatmap has keyboard focus.</p></div>
+          <div class="map-wrap"><canvas id="landscape-chart" tabindex="0" role="img" aria-label="Expected return over policy weight and bias. Click to set the starting policy; arrow keys also move the starting point."></canvas><div class="map-loading" id="map-loading">Computing the landscape…</div></div>
+          <div class="plot-footer"><span>Expected return <strong id="current-return">—</strong></span></div>
+        </section>
+        <section class="plot-panel" aria-labelledby="policy-title">
+          <div class="plot-heading"><h2 id="policy-title">Bitrate policy</h2><button type="button" class="info-button" data-help="tip-policy" aria-label="About the bitrate policy" aria-controls="tip-policy" aria-expanded="false">i</button></div>
+          <div class="info-popover" id="tip-policy" role="tooltip" hidden><p>A policy is the rule for choosing the next chunk’s bitrate. These curves show each choice’s probability as the playback buffer fills. A full buffer holds 60 seconds of video. The buffer-based heuristic favors higher bitrate when more video is buffered.</p></div>
+          <div class="policy-visual"><div class="legend" aria-label="Bitrate legend"><span><i class="high-line" aria-hidden="true"></i>4.3 Mbps · high bitrate</span><span><i class="low-line" aria-hidden="true"></i>2.85 Mbps · low bitrate</span></div><canvas id="policy-chart" role="img" aria-label="Probability of selecting either bitrate as the video buffer fills"></canvas></div>
+        </section>
       </div>
-      <div class="playback"><div class="playback-labels"><label for="timeline">Explore the training path</label><output id="step-label" for="timeline">Step 0 / 10,000</output></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="timeline-hint"><div class="playback-notes"><span id="timeline-hint">Drag to revisit an earlier policy.</span><span id="parameters">w = 0.00 · b = 0.00</span></div></div>
-      <div class="policy-note"><span aria-hidden="true">↳</span><p id="policy-summary">Choose a start, then train the policy.</p></div>
+      <div class="playback">
+        <div class="playback-labels"><div class="label-with-info"><label for="timeline">Training step</label><button type="button" class="info-button" data-help="tip-timeline" aria-label="About the training timeline" aria-controls="tip-timeline" aria-expanded="false">i</button></div><output id="step-label" for="timeline">Step 0 / 10,000</output></div>
+        <div class="info-popover" id="tip-timeline" role="tooltip" hidden><p>Drag to revisit any recorded policy; this pauses training. Each run stops at 10,000 steps. Train again starts a fresh run. Reset returns to the chosen starting policy without training.</p></div>
+        <input id="timeline" type="range" min="0" max="0" value="0" step="1" disabled aria-describedby="tip-timeline">
+        <div class="playback-notes"><span id="parameters">w = 0.00 · b = 0.00</span></div>
+      </div>
+      <div class="policy-note"><p><strong id="policy-label">Initial policy:</strong> <span id="policy-summary">Preparing the experiment.</span></p></div>
     </section>
-    <section class="reward-guide" aria-labelledby="reward-title">
-      <h2 id="reward-title">How reward works</h2>
-      <p class="reward-formula" id="reward-formula"><span>Reward per chunk =</span> <span>bitrate / 4.3</span> <span>− stall penalty × stall seconds / 4</span></p>
-      <p>Higher bitrate earns more reward; waiting for video subtracts reward. Bitrate is in Mbps, and each chunk is 4 seconds.</p>
-      <p><strong>Return on the heatmap</strong> is the expected sum of rewards over 8 chunks, averaged across 7 constant-bandwidth network traces: 3, 3.5, 4, 4.5, 5, 5.5, and 6 Mbps.</p>
+
+    <section class="explanation" aria-labelledby="experiment-title">
+      <div class="explanation-intro"><h2 id="experiment-title">The controlled ABR experiment</h2><p>Rediscovering a familiar rule gives us a way to diagnose learning. If training misses it, compare <strong>what the reward favors</strong>, <strong>where training goes</strong>, and <strong>how the policy behaves</strong>.</p></div>
+      <div class="comparison">
+        <div><h3>Change how it learns</h3><p>Keep the stall penalty fixed. Try a different learning rate or starting point: does training find a different policy on the same landscape?</p></div>
+        <div><h3>Change what it learns</h3><p>Lower the stall penalty, then train again. The landscape changes: does the reward now favor high bitrate even with little video buffered?</p></div>
+      </div>
+      <details class="about" id="method-details">
+        <summary>The streaming setup and reward</summary>
+        <div class="details-body">
+          <p>Each episode streams <strong>8 chunks of 4 seconds</strong>, choosing either <strong>2.85 or 4.3 Mbps</strong> for each chunk. Downloading a chunk adds playable video to the buffer; playback drains it. If downloading takes longer than the available buffer, playback stalls. Buffer occupancy is shown from 0% to 100%, with 100% equal to 60 seconds.</p>
+          <p>The simulator uses <strong>7 constant-bandwidth network traces</strong>: 3, 3.5, 4, 4.5, 5, 5.5, and 6 Mbps. Holding these conditions fixed makes the relationship between rewards, training, and behavior easier to inspect.</p>
+          <p class="reward-formula" id="reward-formula"><span>Reward per chunk =</span> <span>bitrate / 4.3</span> <span>− stall penalty × stall seconds / 4</span></p>
+          <p>Higher bitrate earns more reward; stalling subtracts reward. Bitrate is in Mbps. The heatmap shows <strong>expected return</strong>: the sum of rewards over an episode, averaged across the seven traces. Within each trace, all possible bitrate sequences are weighted by their probabilities under the policy.</p>
+        </div>
+      </details>
+      <details class="about" id="rl-details">
+        <summary>How reinforcement learning updates the policy</summary>
+        <div class="details-body">
+          <p>The policy has two trainable parameters: weight <em>w</em> and bias <em>b</em>. Together they determine the probability of choosing high bitrate at each buffer level:</p>
+          <p class="math-line">P(high bitrate) = sigmoid(w × buffer seconds / 60 + b)</p>
+          <p>Each training step samples 16 streaming episodes. REINFORCE, a policy-gradient method, uses the rewards that follow each choice to estimate an update. There are no examples of the heuristic’s decisions to imitate.</p>
+          <p class="math-line" aria-label="The policy gradient estimate is the average, over sampled episodes and time steps, of future return times the gradient of the log action probability.">ĝ = average of G<sub>t</sub> ∇<sub>θ</sub> log π<sub>θ</sub>(a<sub>t</sub> | s<sub>t</sub>)</p>
+          <p>Here θ = (w, b), π is the policy, and G<sub>t</sub> is the total reward from step <em>t</em> onward. This is the core gradient estimate; the implementation also adds a small entropy bonus (0.01) to encourage exploration and uses Adam to update the parameters.</p>
+          <p><strong>Training is computed anew in your browser.</strong> The heatmap evaluates a grid of policies; it does not store their training paths. This small policy and short simulator make both computations fast. Every run has 10,000 updates and a fixed random seed, so identical settings and starting points reproduce the same trajectory.</p>
+        </div>
+      </details>
+      <details class="about" id="diagnosis-details">
+        <summary>What this litmus test can tell us</summary>
+        <div class="details-body">
+          <p><strong>Heuristic rediscovery is a diagnostic check.</strong> Before asking RL for a better controller, test whether it can recover a familiar one. The full paper asks for appropriate behavior, performance comparable to the heuristic, and reliability across runs.</p>
+          <p><strong>Optimization problem:</strong> a useful policy may exist, but training misses it. The landscape has ridges and plateaus; neither a small policy nor gradient ascent guarantees a good solution.</p>
+          <p><strong>Objective problem:</strong> training may successfully optimize a reward that favors the wrong behavior. Changing the learning rate cannot fix an incentive to ignore stalls.</p>
+          <p>The labels below the plots describe the selected policy’s preferences. <strong>Conservative</strong> and <strong>aggressive</strong> are descriptions, not automatic failures. Recovering a buffer-based pattern is useful evidence, but this demo does not compare performance against the paper’s heuristic baseline or test reliability across random seeds.</p>
+          <p>Training and evaluation use the same controlled traces. A successful run here does not establish performance on real networks. Read the <a href="./paper.html">paper and summary</a> for the broader method and experiments.</p>
+        </div>
+      </details>
     </section>
-    <details class="about" id="method-details"><summary>Plot guide</summary><div><p><strong>Heatmap:</strong> the axes are policy weight <em>w</em> and bias <em>b</em>. Color shows expected return; the orange line traces the training updates.</p><p><strong>Policy:</strong> the curves show each bitrate’s selection probability at the chosen step. Buffer occupancy of 100% means 60 seconds of video ready to play.</p><p><strong>Controls:</strong> drag the timeline to inspect earlier steps. Each run stops at 10,000 steps. Train again starts fresh. Reset, a setting change, or a heatmap click resets training.</p></div></details>
   </main>
-  <footer><span>Controlled ABR · Real training, entirely in JavaScript</span><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research & code ↗</a></footer>
-  <noscript><p class="error">Please enable JavaScript to explore the figure.</p></noscript>
+  <footer><a href="./paper.html">About the paper</a><a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a></footer>
+  <noscript><p class="error">Please enable JavaScript to use the demo.</p></noscript>
 </body>
 </html>

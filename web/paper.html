@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9fb">
+  <meta name="description" content="The paper behind RL Litmus Test: using heuristic rediscovery to diagnose reinforcement learning in networked systems.">
+  <title>Paper &amp; summary · RL Litmus Test</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css?v=20261018-teaching">
+</head>
+<body>
+  <a class="skip" href="#paper">Skip to the paper</a>
+  <header class="site-header">
+    <a class="brand" href="./"><img src="./favicon.svg" alt="" width="30" height="30">RL Litmus Test</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="./">Demo</a>
+      <a href="./paper.html" aria-current="page">Paper &amp; summary</a>
+    </nav>
+  </header>
+  <main class="paper-main" id="paper">
+    <article class="paper-article" aria-labelledby="paper-title">
+      <p class="paper-kicker">HotNets 2026</p>
+      <h1 id="paper-title">Rediscovering heuristics: A litmus test for RL in networked systems</h1>
+      <p class="paper-authors">Seoyul Oh, Yikai Zheng, Eric Xiang Gao, Deepak Vasisht, Francis Y. Yan</p>
+      <p class="paper-affiliations">University of Illinois Urbana-Champaign · Tsinghua University</p>
+      <div class="paper-links">
+        <a class="primary-link" href="./paper.pdf" target="_blank" rel="noreferrer">Manuscript PDF ↗</a>
+        <a href="https://conferences.sigcomm.org/hotnets/2026/program.html" target="_blank" rel="noreferrer">HotNets program ↗</a>
+        <a href="https://github.com/illinois-nsai/Demystify_ML" target="_blank" rel="noreferrer">Research code ↗</a>
+      </div>
+
+      <p class="summary-label">AI-generated summary</p>
+      <section aria-labelledby="test-title">
+        <h2 id="test-title">Can RL recover a rule we already understand?</h2>
+        <p>Before asking reinforcement learning (RL) to discover a better network controller, this paper asks whether it can reliably recover a strong, simple heuristic. In adaptive bitrate streaming (ABR), a familiar rule is to select higher video quality as the playback buffer grows. A compact policy can express this behavior with just a few parameters, making it possible to inspect how training succeeds or fails.</p>
+        <p>The heuristic supplies a target behavior and a performance bar. Training receives only rewards, with no examples of the heuristic’s decisions. Passing the test requires suitable behavior, comparable performance, and reliability across training runs.</p>
+      </section>
+
+      <section aria-labelledby="views-title">
+        <h2 id="views-title">Three views make training inspectable</h2>
+        <ol>
+          <li><strong>Return landscape:</strong> Does the reward make the desired behavior attractive?</li>
+          <li><strong>Optimization path:</strong> Does training reach a useful part of that landscape?</li>
+          <li><strong>Policy behavior:</strong> Does the learned controller satisfy the intended rule?</li>
+        </ol>
+        <p>The demo brings these views together: the heatmap shows expected return, the orange path traces training, and the policy curves show bitrate choices as the buffer fills. A rising reward alone cannot answer all three questions.</p>
+      </section>
+
+      <section aria-labelledby="failures-title">
+        <h2 id="failures-title">Similar symptoms, different causes</h2>
+        <p>In an <strong>optimization failure</strong>, a useful solution exists but training misses it. An unfavorable starting point can lead toward a flat region; an excessive learning rate can overshoot a useful ridge. Even this small policy space has ridges and plateaus.</p>
+        <p>In an <strong>objective failure</strong>, the reward or training traces favor undesirable behavior. Penalizing stalls too weakly can favor aggressive bitrate choices. Changing the optimizer cannot repair that incentive: the reward or training distribution must change.</p>
+      </section>
+
+      <section aria-labelledby="scope-title">
+        <h2 id="scope-title">A diagnostic starting point</h2>
+        <p>The paper studies controlled ABR experiments and additional congestion-control examples. The browser demo uses two bitrates, short episodes, and seven constant-bandwidth traces, allowing expected return to be calculated exactly. It trains and evaluates on those same traces.</p>
+        <p class="paper-callout">Rediscovering a heuristic is a minimum capability check. One successful run does not establish reliability, generalization to real networks, or the performance of a larger neural policy.</p>
+      </section>
+      <p><a class="primary-link" href="./">Explore the demo →</a></p>
+    </article>
+  </main>
+</body>
+</html>

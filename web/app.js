@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261016-origin0';
-import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261016-origin0';
+import { DEFAULT_CONFIG, validateConfig, sigmoid } from './engine.js?v=20261018-teaching';
+import { drawLandscape, hitLandscape, drawPolicy } from './charts.js?v=20261018-teaching';
 
 const $ = (id) => document.getElementById(id);
 const BOUNDS = { wMin: -60, wMax: 80, bMin: -12, bMax: 12, width: 85, height: 65 };
@@ -59,27 +59,34 @@ function updateView() {
   $('timeline').disabled = history.length < 2;
   $('parameters').textContent = `w = ${snapshot.w.toFixed(2)} · b = ${snapshot.b.toFixed(2)}`;
   let summary;
+  let label;
   let kind;
   if (snapshot.w === 0 && snapshot.b === 0) {
+    label = 'Balanced';
     summary = 'Both bitrates are equally likely at every buffer level.';
     kind = 'constant';
   } else if (!snapshot.greedyMonotonic) {
-    summary = 'Reversed rule: more buffer can make this policy prefer a lower bitrate.';
+    label = 'Reversed';
+    summary = 'More buffer can make this policy prefer a lower bitrate.';
     kind = 'reversed';
   } else if (probability(snapshot, 0) <= 0.5 && probability(snapshot, 1) <= 0.5) {
-    summary = 'This policy always prefers the lower bitrate, even with a full buffer.';
+    label = 'Conservative';
+    summary = 'This policy never favors the higher bitrate, even with a full buffer.';
     kind = 'constant';
   } else if (probability(snapshot, 0) > 0.5 && probability(snapshot, 1) > 0.5) {
+    label = 'Aggressive';
     summary = 'This policy always prefers the higher bitrate, even with an empty buffer.';
     kind = 'constant';
   } else {
-    summary = `Follows the buffer rule: it prefers the higher bitrate above ${(snapshot.threshold / 60 * 100).toFixed(1)}% buffer occupancy.`;
+    label = 'Buffer-based';
+    summary = `This policy prefers the higher bitrate above ${(snapshot.threshold / 60 * 100).toFixed(1)}% buffer occupancy.`;
     kind = 'learned';
   }
+  $('policy-label').textContent = `${label}:`;
   $('policy-summary').textContent = summary;
   document.querySelector('.policy-note').dataset.kind = kind;
   $('landscape-chart').setAttribute('aria-label', `Return landscape. Selected step ${snapshot.iteration}, weight ${snapshot.w.toFixed(2)}, bias ${snapshot.b.toFixed(2)}, expected return ${snapshot.return.toFixed(3)}. Click or use arrow keys to choose a new starting policy.`);
-  $('policy-chart').setAttribute('aria-label', `Bitrate probabilities at step ${snapshot.iteration}. ${summary}`);
+  $('policy-chart').setAttribute('aria-label', `Bitrate probabilities at step ${snapshot.iteration}. ${label}: ${summary}`);
   queueCharts();
 }
 
@@ -132,7 +139,7 @@ function prepare(autoStart = false) {
   $('timeline').value = 0;
   $('step-label').value = `Step 0 / ${config.iterations.toLocaleString()}`;
   setState('preparing');
-  const activeWorker = new Worker(new URL('./worker.js?v=20261016-origin0', import.meta.url), { type: 'module' });
+  const activeWorker = new Worker(new URL('./worker.js?v=20261018-teaching', import.meta.url), { type: 'module' });
   worker = activeWorker;
   activeWorker.onerror = (error) => {
     if (worker === activeWorker) fail(error.message || 'The training worker could not start. Please reload the page.');
